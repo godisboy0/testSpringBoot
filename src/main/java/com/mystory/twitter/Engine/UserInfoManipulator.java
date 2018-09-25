@@ -96,4 +96,14 @@ public class UserInfoManipulator {
         return "已为" + userInfos.size() + "名用户更新起始时间为：" + startDate.toString() +
                 ";\n更新结束时间为：" + finishDate.toString() + ";\n更新监控关键词为：" + keyWords;
     }
+
+    public String deleteOne(String screenName) {
+        UserInfo userInfo = userInfoRepo.findByScreenName(screenName);
+        if (userInfo == null) {
+            return "未设置此推特账户";
+        } else {
+            userInfoRepo.delete(screenName);
+            return "已删除推特账户>>>" + screenName + "<<<该用户的数据将不会继续爬取，已爬取的数据仍可获得";
+        }
+    }
 }

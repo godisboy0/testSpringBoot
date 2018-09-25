@@ -5,7 +5,7 @@ import lombok.*;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Getter
@@ -17,7 +17,8 @@ public class ErrorReport {
     @NonNull
     private String subjectID;
     private String errorUrl;
-    private LocalDateTime reportTime;
+    private Date reportTime;
     private String description;
+    private String reportBy;
 
 }

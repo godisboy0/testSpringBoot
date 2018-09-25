@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -25,5 +26,5 @@ public class OathUser {
     @Size(min = 6, max = 20, message = "密码必须是6到20位")
     @Pattern(regexp = "[a-zA-Z0-9_]+", message = "只允许大小写字母、数字和下划线")
     private String password;        //加密后的密码
-    private Boolean isSuperUser;
+    private Boolean isSuperUser = false;
 }

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Api(description = "使用说明")
 public class HelloController {
 
-    @GetMapping("/")
+    @GetMapping("/doc")
     public String sayHello() {
         return "Hello Twitter";
     }
