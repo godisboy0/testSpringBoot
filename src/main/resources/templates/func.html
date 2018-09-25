@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <title>一个登陆页面</title>
+    <link rel="stylesheet" type="text/css" href="/css/common.css"/>
+</head>
+<body>
+<h1 align="center">功能选择页面</h1>
+<div class="func" th:each="function: ${functions}" align="center">
+    <h3 class="func-description"><a href="#" th:href="@{${function.url}}" th:text="${function.description}">nothing to
+        show</a></h3>
+</div>
+</body>
+</html>
