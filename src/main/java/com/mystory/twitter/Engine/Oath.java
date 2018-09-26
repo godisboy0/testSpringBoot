@@ -19,11 +19,21 @@ public class Oath {
     OathUserRepo oathUserRepo;
 
     public Boolean isSuperuser(OathUser user) {
-        return false;
+        OathUser oathUser = oathUserRepo.findByUserName(user.getUserName());
+        if (oathUser == null) {
+            return false;
+        } else if (encryPassword(user.getPassword()).equals(oathUser.getPassword())  && oathUser.getIsSuperUser()) {
+            return true;
+        } else return false;
     }
 
     public Boolean isUser(OathUser user) {
-        return true;
+        OathUser oathUser = oathUserRepo.findByUserName(user.getUserName());
+        if (oathUser == null) {
+            return false;
+        } else if (encryPassword(user.getPassword()).equals(oathUser.getPassword())) {
+            return true;
+        } else return false;
     }
 
     private String encryPassword(String password) {
@@ -54,7 +64,6 @@ public class Oath {
         } else {
             OathUser oathUser = new OathUser();
             oathUser.setUserName(userName);
-            oathUser.setIsSuperUser(true);
             String encryedPassword = encryPassword(password);
             if (Strings.isNullOrEmpty(encryedPassword)) {
                 return "添加用户>>>" + userName + "<<<失败";

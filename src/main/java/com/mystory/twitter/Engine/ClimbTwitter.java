@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 @Log4j
 @Component
 public class ClimbTwitter {
+
     @Value("${blocked}")
     private Boolean blocked;
     @Value("${proxy.type}")

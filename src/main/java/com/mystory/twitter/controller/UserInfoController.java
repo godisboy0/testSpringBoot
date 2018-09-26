@@ -29,7 +29,9 @@ public class UserInfoController {
                                  @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
                                  @RequestParam(value = "finishDate", required = false)
                                  @DateTimeFormat(pattern = "yyyy-MM-dd") Date finishDate) {
+        finishDate = finishDate == null ? new Date(2018, 0, 1) : finishDate;
         UserInfo userInfo = new UserInfo();
+        userInfo.setScreenName(screenName);
         userInfo.setKeyWords(gson.toJson(new HashSet<>(Arrays.asList(keyWords.split("[;；]")))));
         userInfo.setStartTime(startDate);
         userInfo.setFinishTime(finishDate);

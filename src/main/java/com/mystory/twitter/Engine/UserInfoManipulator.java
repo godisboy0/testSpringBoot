@@ -35,7 +35,7 @@ public class UserInfoManipulator {
             userInfoRepo.save(userInfo);
             return "已创建或更新用户";
         } catch (Exception e) {
-            return "创建或更新用户失败";
+            return "创建或更新用户失败" + e.toString();
         }
     }
 
