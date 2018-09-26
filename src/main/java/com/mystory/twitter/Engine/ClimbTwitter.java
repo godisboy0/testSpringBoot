@@ -58,23 +58,21 @@ public class ClimbTwitter {
     ErrorReportRepo errorReportRepo;
     @Autowired
     Twitter twitter;
-    private HttpClient httpClient = null;
+    private HttpClient httpClient = HttpClients.createDefault();
     private RequestConfig proxyConfig = null;
     private Gson gson = new Gson();
     private Map<String, String> cachedUrls = new HashMap<>();    //用于getUrlContent,已经查询过URL直接返回结果，不需要再拉取。
-
-    public ClimbTwitter() {
-        httpClient = HttpClients.createDefault();
-    }
 
     /**
      * 根据配置文件中的值，确定是否设置网络代理
      */
     private void initNetwork() {
+        RequestConfig.Builder configBuilder = RequestConfig.custom().setConnectTimeout(10000).setConnectionRequestTimeout(10000).setSocketTimeout(10000);
         if (blocked) {
             HttpHost proxy = new HttpHost(proxyhost, proxyport);
-            proxyConfig = RequestConfig.custom().setProxy(proxy).build();
+            configBuilder = configBuilder.setProxy(proxy).setProxy(proxy);
         }
+        proxyConfig = configBuilder.build();
     }
 
     private void rateControl() {
@@ -96,9 +94,7 @@ public class ClimbTwitter {
             if (cachedUrls.get(url) == null) {
                 URI uri = new URIBuilder(url).build();
                 HttpGet httpGet = new HttpGet(uri);
-                if (blocked) {
-                    httpGet.setConfig(proxyConfig);
-                }
+                httpGet.setConfig(proxyConfig);
                 httpGet.setHeader("User-Agent",
                         "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:50.0) Gecko/20100101 Firefox/50.0");
                 HttpResponse response = httpClient.execute(httpGet);
@@ -106,7 +102,6 @@ public class ClimbTwitter {
                 //response.getHeaders("content-type")
                 HttpEntity entity = response.getEntity();
                 String entityString = EntityUtils.toString(entity, "UTF-8");
-                ;
                 cachedUrls.put(url, entityString);
             }
             return cachedUrls.get(url);
@@ -124,7 +119,7 @@ public class ClimbTwitter {
      */
     private String getNarrowUrlContent(String wholeUrlContent) {
         String ret = new String();
-        Pattern p = Pattern.compile("<p(.*?)</p>");
+        Pattern p = Pattern.compile("<p(.*?)</p>",Pattern.CASE_INSENSITIVE);
         Matcher matcher = p.matcher(wholeUrlContent);
         while (matcher.find()) {
             ret += matcher.group(1);
@@ -208,7 +203,13 @@ public class ClimbTwitter {
         }
         twitterContent.setFoundPlace(foundPlace);
         twitterContent.setMatchedKeyword(gson.toJson(filter.getMatchedKeywords()));
-        if (foundPlace != 0) {
+        if (((foundPlace & MatchPlace.quotedTweet) | (foundPlace & MatchPlace.originTweet) | (foundPlace & MatchPlace.narrowMatched)) != 0) {
+            twitterContent.setUrlNarrowMatch(true);
+        } else {
+            twitterContent.setUrlNarrowMatch(false);
+        }
+
+        if (foundPlace != 0 || isQuoted) {
             twitterContentRepo.save(twitterContent);
         }
         return foundPlace;
@@ -223,10 +224,10 @@ public class ClimbTwitter {
             users = new ArrayList<>();
             try {
                 users.add(userInfoRepo.findByScreenName(screenName));
-                if (users.isEmpty()){
+                if (users.isEmpty()) {
                     return "User Not Found";
                 }
-            } catch (Exception e){
+            } catch (Exception e) {
                 return "User Not Found";
             }
         }
@@ -286,7 +287,7 @@ public class ClimbTwitter {
         return "finished analysis and " + allMatched + " matched tweets are found";
     }
 
-    private void enrichTwitterContent(@NonNull TwitterContent twitterContent,@NonNull Status status) {
+    private void enrichTwitterContent(@NonNull TwitterContent twitterContent, @NonNull Status status) {
 
         twitterContent.setTweetID(status.getId());
         twitterContent.setTweetContent(status.getText());

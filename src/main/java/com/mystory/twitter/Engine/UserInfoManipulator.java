@@ -31,6 +31,8 @@ public class UserInfoManipulator {
                 userInfo.setFirstGotID(Long.MAX_VALUE);
             } else if (!oldUserInfo.getKeyWords().equals(userInfo.getKeyWords())) {
                 userInfo.setKeywordChanged(true);
+                userInfo.setLastGotID(0L);
+                userInfo.setFirstGotID(Long.MAX_VALUE);
             } else userInfo.setKeywordChanged(false);
             userInfoRepo.save(userInfo);
             return "已创建或更新用户";

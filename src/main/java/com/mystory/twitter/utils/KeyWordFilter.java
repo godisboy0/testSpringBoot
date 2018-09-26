@@ -24,7 +24,9 @@ public class KeyWordFilter {
     public Boolean matched(String content) {
         boolean flag = false;
         for (String keyword : keywords) {
-            if (Pattern.matches(".*" + keyword + ".*", content)){
+            Pattern p = Pattern.compile(".*" + keyword + ".*",Pattern.CASE_INSENSITIVE);
+            Matcher m = p.matcher(content);
+            if (m.matches()){
                 matchedKeywords.add(keyword);
                 flag = true;
             }

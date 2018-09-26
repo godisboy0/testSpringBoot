@@ -13,4 +13,9 @@ public interface TwitterContentRepo extends CrudRepository<TwitterContent, Strin
 
     List<TwitterContent> findByScreenNameAndIsQuotedAndTweetTimeGreaterThanAndTweetTimeLessThan(
             String screenName, Boolean isQuoted, Date startDate, Date finishDate);
+
+    List<TwitterContent> findByScreenNameAndIsQuotedAndUrlNarrowMatchAndTweetTimeGreaterThanAndTweetTimeLessThan(
+            String screenName, Boolean isQuoted, Boolean narrowMatched, Date startDate, Date finishDate
+    );
+
 }

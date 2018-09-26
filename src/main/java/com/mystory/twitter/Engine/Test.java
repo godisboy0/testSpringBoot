@@ -3,7 +3,16 @@ package com.mystory.twitter.Engine;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.mystory.twitter.model.UserInfo;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -108,10 +117,23 @@ public class Test {
         return text.split("[;；]");
     }
 
-    public static void main(String args[]){
-        String text = "nihao;wohao；sheihao";
-        for(String s:testRegixSplit(text)){
-            System.out.println(s);
-        }
+    public static String testProxy(String url) throws Exception{
+        String proxyhost = "127.0.0.1";
+        Integer proxyport = 1080;
+        HttpHost proxy = new HttpHost(proxyhost, proxyport);
+        RequestConfig proxyConfig = RequestConfig.custom().setProxy(proxy).
+                setConnectTimeout(10000).setConnectionRequestTimeout(10000).setSocketTimeout(10000).build();
+        HttpClient httpClient = HttpClients.createDefault();
+        URI uri = new URIBuilder(url).build();
+        HttpGet httpGet = new HttpGet(uri);
+        httpGet.setConfig(proxyConfig);
+        HttpResponse response = httpClient.execute(httpGet);
+        String entityString = EntityUtils.toString(response.getEntity(), "UTF-8");
+        return entityString;
+    }
+
+    public static void main(String args[]) throws Exception{
+        String content = testProxy("https://www.google.com");
+        System.out.println(content);
     }
 }

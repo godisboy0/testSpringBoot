@@ -3,9 +3,8 @@ package com.mystory.twitter.controller;
 import com.mystory.twitter.Engine.TwitterContentServer;
 import com.mystory.twitter.model.FrontTwitterContent;
 import com.mystory.twitter.utils.FuncMenu;
-import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.Model;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -40,19 +39,28 @@ public class FuncMenuController {
 
     @GetMapping("/getOne")
     public ModelAndView getOne(ModelAndView modelAndView, HttpSession session) {
-        modelAndView.setViewName("getone");
+        modelAndView.setViewName("getOne");
         modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
         return modelAndView;
     }
 
     @PostMapping("/getOne")
     public ModelAndView postToGetOne(@RequestParam(value = "sname") String screenNames,
-                                     @RequestParam(value = "startTime",required = false)Date startTime,
-                                     @RequestParam(value = "finishTime",required = false)Date finishTime,
+                                     @RequestParam(value = "startTime", required = false)
+                                     @DateTimeFormat(pattern = "yyyy-MM-dd") Date startTime,
+                                     @RequestParam(value = "finishTime", required = false)
+                                     @DateTimeFormat(pattern = "yyyy-MM-dd") Date finishTime,
                                      @RequestParam(value = "narrowMatch") Boolean narrowMatch,
-                                     ModelAndView modelAndView, HttpSession httpSession){
-        List<FrontTwitterContent> frontTwitterContents =twitterContentServer.
-                getFrontTwitterContent(screenNames,startTime,finishTime,narrowMatch);
+                                     ModelAndView modelAndView, HttpSession httpSession) {
+        if (finishTime == null) {
+            finishTime = new Date(2018, 0, 1);
+        }
+        if (startTime == null) {
+            startTime = new Date(0, 0, 1);
+        }
+        List<FrontTwitterContent> frontTwitterContents = twitterContentServer.
+                getFrontTwitterContent(screenNames, startTime, finishTime, narrowMatch);
+        modelAndView.addObject("twitterContents",frontTwitterContents);
         return modelAndView;
     }
 
