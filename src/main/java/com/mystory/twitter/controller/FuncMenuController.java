@@ -39,7 +39,7 @@ public class FuncMenuController {
 
     @GetMapping("/getOne")
     public ModelAndView getOne(ModelAndView modelAndView, HttpSession session) {
-        modelAndView.setViewName("getOne");
+        modelAndView.setViewName("/getOne");
         modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
         return modelAndView;
     }
@@ -61,6 +61,8 @@ public class FuncMenuController {
         List<FrontTwitterContent> frontTwitterContents = twitterContentServer.
                 getFrontTwitterContent(screenNames, startTime, finishTime, narrowMatch);
         modelAndView.addObject("twitterContents",frontTwitterContents);
+        modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
+        modelAndView.setViewName("/getOne");
         return modelAndView;
     }
 

@@ -22,26 +22,26 @@ public class TwitterContentServer {
 
     private Set<String> ret = null;
 
-    public Set<String> getAllScreenNames() {
-        ret = new HashSet<>();
+    public String getAllScreenNames() {
+        StringBuilder stringBuilder = new StringBuilder();
         for (UserInfo userInfo : userInfoRepo.findAll()) {
-            ret.add(userInfo.getScreenName());
+            stringBuilder.append(userInfo.getScreenName()).append(";");
         }
-        return ret;
+        return stringBuilder.toString();
     }
 
-    private String getPlaceString(Integer places){
+    private String getPlaceString(Integer places) {
         StringBuilder stringBuilder = new StringBuilder();
-        if ((places & MatchPlace.originTweet) != 0){
+        if ((places & MatchPlace.originTweet) != 0) {
             stringBuilder.append("原始推文;");
         }
-        if (((places & MatchPlace.originURL) | (places & MatchPlace.quotedUrl)) != 0 ){
+        if (((places & MatchPlace.originURL) | (places & MatchPlace.quotedUrl)) != 0) {
             stringBuilder.append("推文链接;");
         }
-        if ((places & MatchPlace.quotedTweet) != 0){
+        if ((places & MatchPlace.quotedTweet) != 0) {
             stringBuilder.append("被引推文;");
         }
-        if ((places & MatchPlace.mayMissed) != 0){
+        if ((places & MatchPlace.mayMissed) != 0) {
             stringBuilder.append("无法解析部分外链;");
         }
         return stringBuilder.toString();
@@ -54,27 +54,31 @@ public class TwitterContentServer {
         for (String name : names) {
             twitterContents.addAll(twitterContentRepo.
                     findByScreenNameAndIsQuotedAndUrlNarrowMatchAndTweetTimeGreaterThanAndTweetTimeLessThan(
-                    name, false, narrowMatch, startTime, finishTime
-            ));
+                            name, false, narrowMatch, startTime, finishTime
+                    ));
         }
-        for(TwitterContent twitterContent:twitterContents){
+        for (TwitterContent twitterContent : twitterContents) {
             FrontTwitterContent frontTwitterContent = new FrontTwitterContent();
             frontTwitterContent.setScreenName(twitterContent.getScreenName());
             frontTwitterContent.setTweetTime(twitterContent.getTweetTime());
+            frontTwitterContent.setTweetContent(twitterContent.getTweetContent());
+            frontTwitterContent.setTweetUrl(twitterContent.getTweetUrl());
             frontTwitterContent.setMatchKeyword(twitterContent.getMatchedKeyword());
             frontTwitterContent.setMatchPlace(getPlaceString(twitterContent.getFoundPlace()));
-            frontTwitterContent.setNarrowMatchUrls(gson.fromJson(twitterContent.getNarrowMatchedUrls(),ArrayList.class));
-            frontTwitterContent.setWideMatchUrls(gson.fromJson(twitterContent.getWideMatchedUrls(),ArrayList.class));
-            frontTwitterContent.setMissedUrls(gson.fromJson(twitterContent.getMissedUrls(),ArrayList.class));
-            List<Map<String,String>> quotedTweets = new ArrayList<>();
-            while(twitterContent.getQuotedTweetSubjectID() != null){
-                HashMap<String,String> quotedTweet = new HashMap<>();
+            frontTwitterContent.setNarrowMatchUrls(gson.fromJson(twitterContent.getNarrowMatchedUrls(), ArrayList.class));
+            frontTwitterContent.setWideMatchUrls(gson.fromJson(twitterContent.getWideMatchedUrls(), ArrayList.class));
+            frontTwitterContent.setMissedUrls(gson.fromJson(twitterContent.getMissedUrls(), ArrayList.class));
+            frontTwitterContent.setQuotedTweets(null);
+            List<Map<String, String>> quotedTweets = new ArrayList<>();
+            while (twitterContent.getQuotedTweetSubjectID() != null) {
+                HashMap<String, String> quotedTweet = new HashMap<>();
                 twitterContent = twitterContentRepo.findOne(twitterContent.getQuotedTweetSubjectID());
-                quotedTweet.put("tweetContent",twitterContent.getTweetContent());
-                quotedTweet.put("tweetUrl",twitterContent.getTweetUrl());
+                quotedTweet.put("tweetContent", twitterContent.getTweetContent());
+                quotedTweet.put("tweetUrl", twitterContent.getTweetUrl());
                 quotedTweets.add(quotedTweet);
             }
-            frontTwitterContent.setQuotedTweets(quotedTweets);
+            if (!quotedTweets.isEmpty())
+                frontTwitterContent.setQuotedTweets(quotedTweets);
             ret.add(frontTwitterContent);
         }
 

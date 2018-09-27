@@ -12,10 +12,14 @@
         <span id="errorMessage">&nbsp;</span>
         <span style="font-size: 12px;color: red" th:text="${error}" aria-describedby="basic-addon0"></span>
     </div>
+    <div align="center">
+        <p>可供选择的用户名，请复制，不要手打以免出错</p>
+        <p th:text="${screenNames}"></p>
+    </div>
     <table border="1" align="center">
         <tr>
             <th>
-                <span><pre>选择要查询的用户名</pre></span>
+                <span><pre>选择要查询的用户名,以分号隔开</pre></span>
             </th>
             <th>
                 <span><pre>查询的开始日期</pre></span>
@@ -29,11 +33,7 @@
         </tr>
         <tr>
             <th>
-                <select name="sname">
-                    <option th:each="screenName:${screenNames}" th:value="${screenName}" th:text="${screenName}">
-                        screenName
-                    </option>
-                </select>
+                <input name="sname" type="text"/>
             </th>
             <th>
                 <input id="startTime" name="startTime" type="date" aria-describedby="basic-addon2"/>
@@ -49,91 +49,107 @@
     <div align="center">
         <button type="submit" style="width:190px;">开始查询</button>
     </div>
-    <table align="center" th:each="twitterContent:${twitterContents}" border="1">
-        <tbody>
-        <tr>
-            <th>账户名：</th>
-            <th th:text="twitterContent.screenName">推特账户名</th>
-        </tr>
-        <tr>
-            <th>推文时间：</th>
-            <th th:text="twitterContent.tweetTime">推文时间</th>
-        </tr>
-        <tr>
-            <th>匹配关键词：</th>
-            <th th:text="${twitterContent.matchKeyword}">匹配关键词</th>
-        </tr>
-        <tr>
-            <th>匹配位置：</th>
-            <th th:text="${twitterContent.matchPlace}">匹配位置</th>
-        </tr>
-        <tr>
-            <th>推文正文和地址：</th>
-            <th>
-                <table>
-                    <tr>
-                        <td th:text="${twitterContent.tweetContent}">推文正文</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <a href="#" th:href="@{${twitterContent.tweetUrl}}"
-                               th:text="${twitterContent.tweetUrl}">推文链接</a>
-                        </td>
-                    </tr>
-                </table>
-            </th>
-        </tr>
-        <tr>
-            <th>引用推文正文和地址：</th>
-            <th>
-                <table th:each="quoted:${twitterContent.quotedTweets}">
-                    <tr>
-                        <td th:text="${quoted.tweetContent}">引用推文正文</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <a href="#" th:href="@{${quoted.tweetUrl}}" th:text="${quoted.tweetUrl}">引用推文链接</a>
-                        </td>
-                    </tr>
-                </table>
-            </th>
-        </tr>
-        <tr>
-            <th>窄匹配的外链：</th>
-            <th>
-                <table th:each="narrowMatchUrl:${twitterContent.narrowMatchUrls}">
-                    <tr>
-                        <td><a href="#" th:href="@{${narrowMatchUrl}}" th:text="${narrowMatchUrl}">匹配的外链</a></td>
-                    </tr>
-                </table>
-            </th>
-        </tr>
-        <tr>
-            <th>宽匹配的外链：</th>
-            <th>
-                <table th:each="wideMatchUrl:${twitterContent.wideMatchUrls}">
-                    <tr>
-                        <td><a href="#" th:href="@{${wideMatchUrl}}" th:text="${wideMatchUrl}">匹配的外链</a></td>
-                    </tr>
-                </table>
-            </th>
-        </tr>
-        <tr>
-            <th>无法解析数据的外链：</th>
-            <th>
-                <table th:each="missedUrl:${twitterContent.missedUrls}">
-                    <tr>
-                        <td><a href="#" th:href="@{${missedUrl}}" th:text="${missedUrl}">无法解析数据的外链</a></td>
-                    </tr>
-                </table>
-            </th>
-        </tr>
-        </tbody>
-    </table>
+    <div align="center" th:each="twitterContent,twitterContentStat:${twitterContents}">
+        <table width="1180">
+            <tr>
+                <th align="center">================================================</th>
+            </tr>
+            <tr>
+                <th th:text="'第'+${twitterContentStat.count}+'个结果'">
+                    这是第N个结果
+                </th>
+            </tr>
+            <tr>
+                <th align="center">================================================</th>
+            </tr>
+        </table>
+        <table border="1" width="1180">
+            <tbody>
+            <tr>
+                <th width="200">账户名：</th>
+                <th th:text="${twitterContent.screenName}">推特账户名</th>
+            </tr>
+            <tr>
+                <th>推文时间：</th>
+                <th th:text="${twitterContent.tweetTime}">推文时间</th>
+            </tr>
+            <tr>
+                <th>匹配关键词：</th>
+                <th th:text="${twitterContent.matchKeyword}">匹配关键词</th>
+            </tr>
+            <tr>
+                <th>匹配位置：</th>
+                <th th:text="${twitterContent.matchPlace}">匹配位置</th>
+            </tr>
+            <tr>
+                <th>推文正文和地址：</th>
+                <th>
+                    <table>
+                        <tr>
+                            <td th:text="${twitterContent.tweetContent}" align="left">推文正文</td>
+                        </tr>
+                        <tr>
+                            <td align="left">
+                                <a href="#" th:href="@{${twitterContent.tweetUrl}}"
+                                   th:text="${twitterContent.tweetUrl}">推文链接</a>
+                            </td>
+                        </tr>
+                    </table>
+                </th>
+            </tr>
+            <tr th:if="${twitterContent.quotedTweets}">
+                <th>引用推文正文和地址：</th>
+                <th>
+                    <table th:each="quoted:${twitterContent.quotedTweets}" align="left">
+                        <tr>
+                            <td th:text="${quoted.tweetContent}">引用推文正文</td>
+                        </tr>
+                        <tr>
+                            <td align="left">
+                                <a href="#" th:href="@{${quoted.tweetUrl}}" th:text="${quoted.tweetUrl}">引用推文链接</a>
+                            </td>
+                        </tr>
+                    </table>
+                </th>
+            </tr>
+            <tr th:if="${twitterContent.narrowMatchUrls}">
+                <th>窄匹配的外链：</th>
+                <th align="left">
+                    <table th:each="narrowMatchUrl:${twitterContent.narrowMatchUrls}" align="left">
+                        <tr>
+                            <td><a href="#" th:href="@{${narrowMatchUrl}}" th:text="${narrowMatchUrl}">匹配的外链</a></td>
+                        </tr>
+                    </table>
+                </th>
+            </tr>
+            <tr th:if="${twitterContent.wideMatchUrls}">
+                <th>宽匹配的外链：</th>
+                <th>
+                    <table th:each="wideMatchUrl:${twitterContent.wideMatchUrls}" align="left">
+                        <tr>
+                            <td><a href="#" th:href="@{${wideMatchUrl}}" th:text="${wideMatchUrl}">匹配的外链</a></td>
+                        </tr>
+                    </table>
+                </th>
+            </tr>
+            <tr th:if="${twitterContent.missedUrls}">
+                <th>无法解析数据的外链：</th>
+                <th>
+                    <table th:each="missedUrl:${twitterContent.missedUrls}" align="left">
+                        <tr>
+                            <td><a href="#" th:href="@{${missedUrl}}" th:text="${missedUrl}">无法解析数据的外链</a></td>
+                        </tr>
+                    </table>
+                </th>
+            </tr>
+            </tbody>
+        </table>
+    </div>
     <p>1.开始和结束日期都可以留空，表示不做时间限制，只留空开始日期，即最早时间不设限，如果只留空结束日期，表示最迟时间不设限。</p>
     <p>2.只能筛选已经存储在数据库中的数据，不能新增数据。意思是：真正爬取的数据时间段是由管理员设置的，程序只会爬取管理员设置的时间段内的数据，
         这里的时间范围并不会导致程序爬取新的数据，只是对已经爬取的数据进行了时间段筛选。</p>
-    <p>3.是否只筛选窄匹配的意思是，某些关键词可能是在推文链接的网页中找到的，但这些网页可能有一些链接指向其他文章或广告，比如在一篇时政文章里， 有一个卖中国大蒜的广告，那么"中国"就有可能被匹配。窄匹配是指只匹配网页的正文，广告会被去掉，但因为筛选方法的问题，只读取窄匹配数据，也有可能导致遗漏正文</p>
+    <p>3.是否只筛选窄匹配的意思是，某些关键词可能是在推文链接的网页中找到的，但这些网页可能有一些链接指向其他文章或广告，比如在一篇时政文章里，
+        有一个卖中国大蒜的广告，那么"中国"就有可能被匹配。窄匹配是指只匹配网页的正文，广告会被去掉，但因为筛选方法的问题，只读取窄匹配数据，也有可能导致遗漏正文</p>
 </form>
 </body>
 </html>

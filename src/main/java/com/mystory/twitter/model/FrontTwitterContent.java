@@ -11,6 +11,8 @@ public class FrontTwitterContent {
     private String screenName;
     private Date tweetTime;
     private String matchKeyword;
+    private String tweetUrl;
+    private String tweetContent;
     private String matchPlace;
     private List<Map<String,String>> quotedTweets;
     private List<String> narrowMatchUrls;
