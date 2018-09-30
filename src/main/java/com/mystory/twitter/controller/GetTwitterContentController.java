@@ -1,37 +1,54 @@
 package com.mystory.twitter.controller;
 
 
-import com.mystory.twitter.model.TwitterContent;
-import com.mystory.twitter.repository.TwitterContentRepo;
-import io.swagger.annotations.Api;
+import com.mystory.twitter.Engine.TwitterContentServer;
+import com.mystory.twitter.model.FrontTwitterContent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpSession;
 import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping("/getResult")
-@Api(description = "查找结果")
+@RequestMapping("/func")
 public class GetTwitterContentController {
     @Autowired
-    TwitterContentRepo twitterContentRepo;
+    private TwitterContentServer twitterContentServer;
 
     @GetMapping("/getOne")
-    public List<TwitterContent> getByScreenName(@RequestParam(value = "screenName") String screenName,
-                                                @RequestParam(value = "startDate", required = false)
-                                                @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-                                                @RequestParam(value = "finishDate", required = false)
-                                                @DateTimeFormat(pattern = "yyyy-MM-dd") Date finishDate) {
-        startDate = startDate == null ? new Date(2008 - 1900, 0, 1) : startDate;
-        finishDate = finishDate == null ? new Date(2018, 0, 1) : finishDate;
-        List<TwitterContent> twitterContents = twitterContentRepo.
-                findByScreenNameAndIsQuotedAndTweetTimeGreaterThanAndTweetTimeLessThan(screenName, false, startDate, finishDate);
-        return twitterContents;
+    public ModelAndView getOne(ModelAndView modelAndView, HttpSession session) {
+        modelAndView.setViewName("/getOne");
+        modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
+        return modelAndView;
+    }
+
+    @PostMapping("/getOne")
+    public ModelAndView postToGetOne(@RequestParam(value = "sname") String screenNames,
+                                     @RequestParam(value = "startTime", required = false)
+                                     @DateTimeFormat(pattern = "yyyy-MM-dd") Date startTime,
+                                     @RequestParam(value = "finishTime", required = false)
+                                     @DateTimeFormat(pattern = "yyyy-MM-dd") Date finishTime,
+                                     @RequestParam(value = "narrowMatch") Boolean narrowMatch,
+                                     ModelAndView modelAndView, HttpSession httpSession) {
+        if (finishTime == null) {
+            finishTime = new Date(2018, 0, 1);
+        }
+        if (startTime == null) {
+            startTime = new Date(0, 0, 1);
+        }
+        if (startTime.compareTo(finishTime) >= 0) {
+            modelAndView.addObject("error", "哥，仔细点……你这开始日期都比结束日期还晚了");
+        } else {
+            List<FrontTwitterContent> frontTwitterContents = twitterContentServer.
+                    getFrontTwitterContent(screenNames, startTime, finishTime, narrowMatch);
+            modelAndView.addObject("twitterContents", frontTwitterContents);
+            modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
+        }
+        modelAndView.setViewName("/getOne");
+        return modelAndView;
     }
 
 //    /**

@@ -19,9 +19,9 @@ import java.util.List;
 class FuncMenuFactory {
     private static FuncMenu getTwitterContentFunc = new FuncMenu("按推特账户和时间获取已爬取的数据", "/func/getOne");
     private static FuncMenu getUserGuideFunc = new FuncMenu("查看用户指南", "/hello/doc");
-    private static FuncMenu setUserInfoFunc = new FuncMenu("设置一个爬取的推特账号", "/UserInfo//insertOne");
-    private static FuncMenu batchSetUserInfoFunc = new FuncMenu("批量设置需要爬取的推特账号", "/UserInfo/batchUpdate");
-    private static FuncMenu deleteUserInfoFunc = new FuncMenu("删除一个需要爬取的推特账号", "/userInfo/deleteOne");
+    private static FuncMenu lookUpUserInfoFunc = new FuncMenu("查看已经设置的爬取账号信息", "/func/insert");
+    private static FuncMenu batchSetUserInfoFunc = new FuncMenu("批量设置需要爬取的推特账号", "/func/insertUser");
+    private static FuncMenu deleteUserInfoFunc = new FuncMenu("批量删除需要爬取的推特账号", "/func/deleteUser");
     private static FuncMenu errorReport = new FuncMenu("报告发现的行为异常", "/errorReport");
     private static FuncMenu addOathUser = new FuncMenu("新添加用户", "/addUser/new");
     private static FuncMenu deleteOathUser = new FuncMenu("删除用户", "/addUser/delete");
@@ -32,6 +32,7 @@ class FuncMenuFactory {
         if (generalFuncs == null) {
             generalFuncs = new ArrayList<>();
             generalFuncs.add(getTwitterContentFunc);
+            generalFuncs.add(lookUpUserInfoFunc);
             generalFuncs.add(getUserGuideFunc);
             generalFuncs.add(errorReport);
         }
@@ -44,7 +45,6 @@ class FuncMenuFactory {
                 getGeneralFuncs();
             }
             adminFuncs = new ArrayList<>(generalFuncs);
-            adminFuncs.add(setUserInfoFunc);
             adminFuncs.add(batchSetUserInfoFunc);
             adminFuncs.add(deleteUserInfoFunc);
             adminFuncs.add(addOathUser);
@@ -62,7 +62,6 @@ class FuncMenuFactory {
 public class LoginController {
     @Autowired
     Oath oath;
-    Gson gson = new Gson();
 
     @GetMapping
     public ModelAndView getIndex(ModelAndView modelAndView) {

@@ -4,12 +4,13 @@ import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.mystory.twitter.model.UserInfo;
 import com.mystory.twitter.repository.UserInfoRepo;
-import lombok.val;
+import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+@Log4j
 @Component
 public class UserInfoManipulator {
     @Autowired
@@ -18,11 +19,30 @@ public class UserInfoManipulator {
 
     private final String Description = "设置用户名（例如https://twitter.com/realDonaldTrump中的\"realDonaldTrump\"）、" +
             "需要筛选的关键词(每个一行)、需要筛选的时间段等";
+    private final List<String> errorMessages = Arrays.asList("screenName或keywords不能为空",
+            "结束日期比开始日期还早？", "未知原因创建用户失败，maybe数据库挂了", "开始时间为空或格式不对，标准格式为2018-9-20",
+            "要删除的用户不存在");
+    private final List<String> successMessages = Arrays.asList("已创建或更新用户", "已删除用户");
 
-    public String set(UserInfo userInfo) {
-        if (isNullorDeepEmpty(gson.fromJson(userInfo.getKeyWords(), ArrayList.class))) {
-            return "keyword不能为空值";
+    private String set(String screenName, String keyWords, Date startDate, Date finishDate) {
+        if (Strings.isNullOrEmpty(keyWords) || Strings.isNullOrEmpty(screenName) ||
+                isNullorDeepEmpty(Arrays.asList(keyWords.split("[;；]")))) {
+            return errorMessages.get(0);
         }
+        finishDate = finishDate == null ? new Date(2018, 0, 1) : finishDate;
+        if (startDate == null) {
+            return errorMessages.get(3);
+        }
+        if (startDate.compareTo(finishDate) >= 0) {
+            return errorMessages.get(1);
+        }
+        UserInfo userInfo = new UserInfo();
+        userInfo.setScreenName(screenName);
+        List<String> keyWordList = Arrays.asList(keyWords.split("[;；]"));
+        keyWordList = filter(keyWordList);
+        userInfo.setKeyWords(gson.toJson(new HashSet<>(keyWordList)));
+        userInfo.setStartTime(startDate);
+        userInfo.setFinishTime(finishDate);
         try {
             UserInfo oldUserInfo = userInfoRepo.findByScreenName(userInfo.getScreenName());
             if (oldUserInfo == null) {
@@ -35,9 +55,10 @@ public class UserInfoManipulator {
                 userInfo.setFirstGotID(Long.MAX_VALUE);
             } else userInfo.setKeywordChanged(false);
             userInfoRepo.save(userInfo);
-            return "已创建或更新用户";
+            return successMessages.get(0);
         } catch (Exception e) {
-            return "创建或更新用户失败" + e.toString();
+            log.error(e.getMessage());
+            return errorMessages.get(2);
         }
     }
 
@@ -62,6 +83,18 @@ public class UserInfoManipulator {
         return true;
     }
 
+    private List<String> filter(List<String> list) {
+        List<String> ret = new ArrayList<>();
+        for (String element : list) {
+            if (element.contains(" ") || element.contains("\n") || element.contains("\t")) {
+                continue;
+            }
+            ret.add(element);
+        }
+        return ret;
+    }
+
+
     /**
      * 为指定用户批量设置起始时间、结束时间和关键词.
      *
@@ -72,40 +105,58 @@ public class UserInfoManipulator {
     public String batchSet(String usersString, Date startDate, Date finishDate, String keyWordsString) {
 
         List<String> users = new ArrayList<String>(Arrays.asList(usersString.split("[;；]")));
-        List<String> keyWords = new ArrayList<String>(Arrays.asList(keyWordsString.split("[;；]")));
+        List<String> failNames = new ArrayList<>();
+        List<String> successNames = new ArrayList<>();
 
-        if (isNullorDeepEmpty(keyWords)) {
-            return "过滤关键词不能为空";
-        }
-        while (keyWords.remove("")) ;
         for (String screenName : users) {
-            if (Strings.isNullOrEmpty(screenName)) {
+            if (Strings.isNullOrEmpty(screenName))
                 continue;
-            }
-            UserInfo singleUser = userInfoRepo.findByScreenName(screenName);
-            if (singleUser == null) {
-                singleUser.setScreenName(screenName);
-                set(singleUser);
+            if (!set(screenName, keyWordsString, startDate, finishDate).equals(successMessages.get(0))) {
+                failNames.add(screenName);
+            } else {
+                successNames.add(screenName);
             }
         }
-        List<UserInfo> userInfos = userInfoRepo.findAll();
-        for (val userInfo : userInfos) {
-            userInfo.setStartTime(startDate);
-            userInfo.setFinishTime(finishDate);
-            userInfo.setKeyWords(gson.toJson(keyWords));
+        StringBuilder stringBuilder = new StringBuilder("成功插入或更新以下用户：\n");
+        for (String name : successNames) {
+            stringBuilder.append(name).append("\n");
         }
-        userInfoRepo.save(userInfos);
-        return "已为" + userInfos.size() + "名用户更新起始时间为：" + startDate.toString() +
-                ";\n更新结束时间为：" + finishDate.toString() + ";\n更新监控关键词为：" + keyWords;
+        stringBuilder.append("以下用户信息更新失败：\n");
+        for (String name : failNames) {
+            stringBuilder.append(name).append("\n");
+        }
+        return stringBuilder.toString();
     }
 
-    public String deleteOne(String screenName) {
+    private String deleteOne(String screenName) {
         UserInfo userInfo = userInfoRepo.findByScreenName(screenName);
         if (userInfo == null) {
-            return "未设置此推特账户";
+            return errorMessages.get(4);
         } else {
             userInfoRepo.delete(screenName);
-            return "已删除推特账户>>>" + screenName + "<<<该用户的数据将不会继续爬取，已爬取的数据仍可获得";
+            return successMessages.get(1);
         }
     }
+
+    public String batchDelete(String screenNames) {
+        List<String> successNames = new ArrayList<>();
+        List<String> failNames = new ArrayList<>();
+        for (String screenName : new HashSet<>(Arrays.asList(screenNames.split("[;；]")))) {
+            if (deleteOne(screenName).equals(successMessages.get(1))) {
+                successNames.add(screenName);
+            } else {
+                failNames.add(screenName);
+            }
+        }
+        StringBuilder stringBuilder = new StringBuilder("成功删除以下用户：\n");
+        for (String name : successNames) {
+            stringBuilder.append(name).append("\n");
+        }
+        stringBuilder.append("以下用户删除失败：\n");
+        for (String name : failNames) {
+            stringBuilder.append(name).append("\n");
+        }
+        return stringBuilder.toString();
+    }
+
 }

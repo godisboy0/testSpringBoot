@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <title>批量删除要爬取的用户</title>
+    <link rel="stylesheet" type="text/css" href="/css/common.css"/>
+</head>
+<body>
+<h1 align="center">请输入需要删除的推特账户</h1>
+<form method="post">
+    <div align="center">
+        <span id="errorMessage">&nbsp;</span>
+        <span style="font-size: 12px;color: red" th:text="${error}" aria-describedby="basic-addon0"></span>
+    </div>
+    <div align="center">
+        <p>已经在数据库中的用户名</p>
+        <p th:text="${screenNames}"></p>
+    </div>
+    <table border="1" align="center">
+        <tr>
+            <th>
+                <span><pre>输入要删除的用户名,以分号隔开</pre></span>
+            </th>
+        </tr>
+        <tr>
+            <th>
+                <input name="sname" type="text"/>
+            </th>
+        </tr>
+    </table>
+    <div align="center">
+        <button type="submit" style="width:190px;">提交</button>
+    </div>
+    <div align="center">
+        <pre th:text="${deleteStatus}"></pre>
+    </div>
+    <p>1.删除的用户也要makeSense，不能有空格之类的</p>
+    <p>2.被删除的用户，其已经爬取的数据并不会被删除，仍然可以在查看推文信息中读取，但是如果重新插入该用户，该用户的所有数据将会被重新爬取。</p>
+    <p>3.或许我可以并不真正删除用户，只是标记逻辑删除……以后再实现吧。</p>
+</form>
+</body>
+</html>

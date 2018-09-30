@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <title>批量插入要爬取的用户</title>
+    <link rel="stylesheet" type="text/css" href="/css/common.css"/>
+</head>
+<body>
+<h1 align="center">请输入需要爬取的用户</h1>
+<form method="post">
+    <div align="center">
+        <span id="errorMessage">&nbsp;</span>
+        <span style="font-size: 12px;color: red" th:text="${error}" aria-describedby="basic-addon0"></span>
+    </div>
+    <div align="center">
+        <p>已经在数据库中的用户名</p>
+        <p th:text="${screenNames}"></p>
+    </div>
+    <table border="1" align="center">
+        <tr>
+            <th>
+                <span><pre>输入要插入的用户名,以分号隔开</pre></span>
+            </th>
+            <th>
+                <span><pre>输入要查询的关键词,以分号隔开</pre></span>
+            </th>
+            <th>
+                <span><pre>查询的开始日期</pre></span>
+            </th>
+            <th>
+                <span><pre>查询的结束日期</pre></span>
+            </th>
+        </tr>
+        <tr>
+            <th>
+                <input name="sname" type="text"/>
+            </th>
+            <th>
+                <input name="keywords" type="text"/>
+            </th>
+            <th>
+                <input name="startTime" type="date" aria-describedby="basic-addon2"/>
+            </th>
+            <th>
+                <input name="finishTime" type="date" aria-describedby="basic-addon2"/>
+            </th>
+        </tr>
+    </table>
+    <div align="center">
+        <button type="submit" style="width:190px;">提交</button>
+    </div>
+    <div align="center">
+        <pre th:text="${insertStatus}"></pre>
+    </div>
+    <p>1.只输入一个用户名就是单个用户插入了。已有信息的screenName被再次提交时，会不带任何提示地直接覆盖原来的信息。如果更新了关键字（包括修改了其顺序），
+    还会引发用户信息的爬取状态被清零，该用户所有已爬取资料删除重爬。</p>
+    <p>2.最好自己注意一下数据的合逻辑性，比如输入了一个并不存在的screenName，可能会引起官方的API报错崩溃，于是出现异常，我真的没精力对这个进行验证；
+        再比如开始日期在结束日期之后的这种数据错误，最好不要提交上来，虽然我也做了筛选，但不一定足够严密， 到时候数据各种崩溃的时候……很难搞</p>
+    <p>3.在数据中不允许出现任何形式的空白字符，比如空格或者回车或者tab，最好的情况是无法插入数据库，最坏的情况是插入了但运行时程序会崩溃</p>
+</form>
+</body>
+</html>
