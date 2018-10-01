@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <title>查看已经设置需要爬取的用户信息</title>
+    <link rel="stylesheet" type="text/css" href="/css/common.css"/>
+</head>
+<body>
+<h1 align="center">请输入需要查看的推特账户名</h1>
+<form method="post">
+    <div align="center">
+        <span id="errorMessage">&nbsp;</span>
+        <span style="font-size: 12px;color: red" th:text="${error}" aria-describedby="basic-addon0"></span>
+    </div>
+    <div align="center">
+        <p>已经在数据库中的用户名</p>
+        <p th:text="${screenNames}"></p>
+    </div>
+    <table border="1" align="center" width="1080">
+        <tr>
+            <th>
+                <span>输入要查看的用户名,以分号隔开</span>
+            </th>
+        </tr>
+        <tr>
+            <th>
+                <input size="150" name="sname" type="text"/>
+            </th>
+        </tr>
+    </table>
+    <div align="center">
+        <button type="submit" style="width:190px;">提交</button>
+    </div>
+    <div align="center">
+        <div>
+            <table th:if="${userInfos}" border="1">
+                <tr>
+                    <th width="150">screenName</th>
+                    <th width="450">设置的关键词</th>
+                    <th width="120">开始爬取时间</th>
+                    <th width="120">结束爬取时间</th>
+                    <!--th width="60">更新状态</th-->
+                    <!--th width="100">已获得的数据数量</th-->
+                </tr>
+                <tr th:each="userInfo,userInfoStat:${userInfos}">
+                    <th th:text="${userInfo.screenName}">screenName</th>
+                    <th th:text="${userInfo.keyWords}">keywords</th>
+                    <th th:text="${#dates.format(userInfo.startTime, 'yyyy-MM-dd')}">startDate</th>
+                    <th th:text="${#dates.format(userInfo.finishTime, 'yyyy-MM-dd')}">finishDate</th>
+                    <!--th th:text="${userInfo.keywordChanged}">needRenew?</th-->
+                    <!--th th:text="userInfo.num">Got</th-->
+                </tr>
+            </table>
+        </div>
+    </div>
+    <p>1.留空的话（任何字符都不输入，包括空格回车tab等不可见字符），会返回所有已设置的推特的信息。</p>
+    <p>2.如果只是查看已设置的推特名，上面的信息已经足够了，不要再查询了，浪费计算资源</p>
+    <h4 style="color: red">3.强烈建议在其他文本编辑器中写好了之后粘贴过来，而不要在这里直接写，因为输入框太小，不容易看清楚</h4>
+</form>
+</body>
+</html>

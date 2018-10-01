@@ -16,15 +16,15 @@
         <p>已经在数据库中的用户名</p>
         <p th:text="${screenNames}"></p>
     </div>
-    <table border="1" align="center">
+    <table border="1" align="center" width="1080">
         <tr>
             <th>
-                <span><pre>输入要删除的用户名,以分号隔开</pre></span>
+                <span>输入要删除的用户名,以分号隔开</span>
             </th>
         </tr>
         <tr>
             <th>
-                <input name="sname" type="text"/>
+                <input size="150" name="sname" type="text"/>
             </th>
         </tr>
     </table>
@@ -37,6 +37,7 @@
     <p>1.删除的用户也要makeSense，不能有空格之类的</p>
     <p>2.被删除的用户，其已经爬取的数据并不会被删除，仍然可以在查看推文信息中读取，但是如果重新插入该用户，该用户的所有数据将会被重新爬取。</p>
     <p>3.或许我可以并不真正删除用户，只是标记逻辑删除……以后再实现吧。</p>
+    <h4 style="color: red">4.强烈建议在其他文本编辑器中写好了之后粘贴过来，而不要在这里直接写，因为输入框太小，不容易看清楚</h4>
 </form>
 </body>
 </html>

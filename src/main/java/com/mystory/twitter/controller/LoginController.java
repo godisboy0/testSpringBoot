@@ -19,10 +19,10 @@ import java.util.List;
 class FuncMenuFactory {
     private static FuncMenu getTwitterContentFunc = new FuncMenu("按推特账户和时间获取已爬取的数据", "/func/getOne");
     private static FuncMenu getUserGuideFunc = new FuncMenu("查看用户指南", "/hello/doc");
-    private static FuncMenu lookUpUserInfoFunc = new FuncMenu("查看已经设置的爬取账号信息", "/func/insert");
+    private static FuncMenu lookUpUserInfoFunc = new FuncMenu("查看已经设置的爬取账号信息", "/func/findUserInfo");
     private static FuncMenu batchSetUserInfoFunc = new FuncMenu("批量设置需要爬取的推特账号", "/func/insertUser");
     private static FuncMenu deleteUserInfoFunc = new FuncMenu("批量删除需要爬取的推特账号", "/func/deleteUser");
-    private static FuncMenu errorReport = new FuncMenu("报告发现的行为异常", "/errorReport");
+    private static FuncMenu errorReport = new FuncMenu("报告发现的行为异常", "/func/errorReport");
     private static FuncMenu addOathUser = new FuncMenu("新添加用户", "/addUser/new");
     private static FuncMenu deleteOathUser = new FuncMenu("删除用户", "/addUser/delete");
     private static List<FuncMenu> generalFuncs = null;

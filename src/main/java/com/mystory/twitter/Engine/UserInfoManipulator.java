@@ -62,10 +62,11 @@ public class UserInfoManipulator {
         }
     }
 
-    public List<UserInfo> get(String screenName) {
+    public List<UserInfo> get(String screenNames) {
         List<UserInfo> userInfos = new ArrayList<>();
-        if (!Strings.isNullOrEmpty(screenName)) {
-            userInfos.add(userInfoRepo.findByScreenName(screenName));
+        if (!Strings.isNullOrEmpty(screenNames)) {
+            for (String screenName : screenNames.split("[;；]"))
+                userInfos.add(userInfoRepo.findByScreenName(screenName));
         } else {
             userInfos.addAll(userInfoRepo.findAll());
         }

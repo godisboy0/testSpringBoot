@@ -22,17 +22,6 @@ public class UserInfoController {
     @Autowired
     private TwitterContentServer twitterContentServer;
 
-    /**
-     * 通过一个screenName返回该用户的已设定信息，如为空则返回所有人的信息
-     *
-     * @param screenName
-     * @return
-     */
-    @GetMapping("/findUser")
-    public List<UserInfo> getUserInfo(@RequestParam(value = "screenName") String screenName) {
-        return userInfoManipulator.get(screenName);
-    }
-
     @GetMapping("/insertUser")
     public ModelAndView getInsertOnePage(ModelAndView modelAndView) {
         modelAndView.setViewName("insertUserInfo");
@@ -54,10 +43,10 @@ public class UserInfoController {
         return modelAndView;
     }
 
-    @GetMapping("/status")
-    public String updateStatus(@ModelAttribute("message") String message) {
-        return message;
-    }
+//    @GetMapping("/status")
+//    public String updateStatus(@ModelAttribute("message") String message) {
+//        return message;
+//    }
 
     @GetMapping("/deleteUser")
     public ModelAndView deleteOnePage(ModelAndView modelAndView) {
@@ -71,6 +60,21 @@ public class UserInfoController {
 
         modelAndView.setViewName("deleteUserInfo");
         modelAndView.addObject("deleteStatus", userInfoManipulator.batchDelete(screenNames));
+        modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
+        return modelAndView;
+    }
+
+    @GetMapping("/findUserInfo")
+    public ModelAndView getUserInfoPage(ModelAndView modelAndView) {
+        modelAndView.setViewName("findUserInfo");
+        modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
+        return modelAndView;
+    }
+
+    @PostMapping("/findUserInfo")
+    public ModelAndView getUserInfo(@RequestParam(value = "sname") String screenNames,ModelAndView modelAndView){
+        modelAndView.setViewName("findUserInfo");
+        modelAndView.addObject("userInfos",userInfoManipulator.get(screenNames));
         modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
         return modelAndView;
     }
