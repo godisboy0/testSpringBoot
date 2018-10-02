@@ -1,5 +1,6 @@
 package com.mystory.twitter.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -11,11 +12,14 @@ import springfox.documentation.spring.web.plugins.Docket;
 
 @Configuration
 public class SwaggerConfiguration {
+    @Value("${swagger.enable}")
+    private boolean enableSwagger;
 
     @Bean
     public Docket createRestApi() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
+                .enable(enableSwagger)
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("com.mystory.twitter.controller"))
                 .paths(PathSelectors.any())

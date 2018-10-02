@@ -29,7 +29,6 @@ public class TwitterCollectFactory {
                               @Value("${twitter4j.oauth.consumerSecret}") String cc,
                               @Value("${twitter4j.oauth.accessToken}") String at,
                               @Value("${twitter4j.oauth.accessTokenSecret}") String ats) {
-        log.error("-------------blocked-------------------" + this.toString());
         ConfigurationBuilder cb = new ConfigurationBuilder();
         cb.setDebugEnabled(true)
                 .setOAuthConsumerKey(ck)

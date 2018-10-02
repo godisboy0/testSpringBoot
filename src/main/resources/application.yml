@@ -20,5 +20,7 @@ spring:
     time-zone: GMT+8
 
 configFilename: privateConfig.yml
-#是否在墙内，如果该值为true，会读取私有配置文件中的代理数据
-blocked: true
+#是否在墙内，如果该值为true，会读取私有配置文件中的代理数据，目前已改为用命令行方式实现
+blocked: false
+swagger:
+  enable: false

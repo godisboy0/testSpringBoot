@@ -20,7 +20,7 @@ public class GetTwitterContentController {
 
     @GetMapping("/getOne")
     public ModelAndView getOne(ModelAndView modelAndView, HttpSession session) {
-        modelAndView.setViewName("/getOne");
+        modelAndView.setViewName("getOne");
         modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
         return modelAndView;
     }
@@ -47,7 +47,7 @@ public class GetTwitterContentController {
             modelAndView.addObject("twitterContents", frontTwitterContents);
             modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
         }
-        modelAndView.setViewName("/getOne");
+        modelAndView.setViewName("getOne");
         return modelAndView;
     }
 
