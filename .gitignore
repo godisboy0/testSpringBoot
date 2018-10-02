@@ -57,6 +57,5 @@ Temporary Items
 .apdisk
 
 upload_image_folder/
-src/main/resources/privateConfig.yml
 
 # End of https://www.gitignore.io/api/macos

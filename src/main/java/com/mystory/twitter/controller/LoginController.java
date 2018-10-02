@@ -1,6 +1,5 @@
 package com.mystory.twitter.controller;
 
-import com.google.gson.Gson;
 import com.mystory.twitter.Engine.Oath;
 import com.mystory.twitter.model.OathUser;
 import com.mystory.twitter.utils.FuncMenu;
@@ -23,8 +22,9 @@ class FuncMenuFactory {
     private static FuncMenu batchSetUserInfoFunc = new FuncMenu("批量设置需要爬取的推特账号", "/func/insertUser");
     private static FuncMenu deleteUserInfoFunc = new FuncMenu("批量删除需要爬取的推特账号", "/func/deleteUser");
     private static FuncMenu errorReport = new FuncMenu("报告发现的行为异常", "/func/errorReport");
-    private static FuncMenu addOathUser = new FuncMenu("新添加用户", "/addUser/new");
-    private static FuncMenu deleteOathUser = new FuncMenu("删除用户", "/addUser/delete");
+    //考虑到所有的普通用户权限都一样，暂时没必要增加这个愚蠢的功能。
+    //private static FuncMenu addOathUser = new FuncMenu("新添加用户", "/addUser/new");
+    //private static FuncMenu deleteOathUser = new FuncMenu("删除用户", "/addUser/delete");
     private static List<FuncMenu> generalFuncs = null;
     private static List<FuncMenu> adminFuncs = null;
 
@@ -47,8 +47,8 @@ class FuncMenuFactory {
             adminFuncs = new ArrayList<>(generalFuncs);
             adminFuncs.add(batchSetUserInfoFunc);
             adminFuncs.add(deleteUserInfoFunc);
-            adminFuncs.add(addOathUser);
-            adminFuncs.add(deleteOathUser);
+            //adminFuncs.add(addOathUser);
+            //adminFuncs.add(deleteOathUser);
         }
         return adminFuncs;
     }
@@ -91,6 +91,7 @@ public class LoginController {
             List<FuncMenu> adminMenu = FuncMenuFactory.getAdminFuncs();
             modelAndView.setViewName("redirect:/func");
             session.setAttribute("functions", "adminMenu");
+            session.setMaxInactiveInterval( 3 * 60 * 60);       //设置三小时的过期时间
             return modelAndView;
         } else if (oath.isUser(oathUser)) {
             log.info("普通用户：" + oathUser.getUserName() + "登陆成功");
@@ -99,6 +100,7 @@ public class LoginController {
             List<FuncMenu> generalMenu = FuncMenuFactory.getGeneralFuncs();
             modelAndView.setViewName("redirect:/func");
             session.setAttribute("functions", "generalMenu");
+            session.setMaxInactiveInterval( 3 * 60 * 60);       //设置三小时的过期时间
             return modelAndView;
         } else {
             modelAndView.addObject("error", "用户名或密码错误");
