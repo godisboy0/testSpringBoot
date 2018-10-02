@@ -262,6 +262,7 @@ public class ClimbTwitter {
                     pageNo++;
                 } catch (Exception e) {
                     log.error(String.format("Can't get Twitter for User %s", user.getScreenName()));
+                    break;
                 }
             }
             //现在我们获得了这个user的符合时间段筛选条件的Status列表
