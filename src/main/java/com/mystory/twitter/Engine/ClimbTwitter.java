@@ -4,11 +4,13 @@ import com.google.gson.Gson;
 import com.mystory.twitter.model.MatchPlace;
 import com.mystory.twitter.model.TwitterContent;
 import com.mystory.twitter.model.UserInfo;
+import com.mystory.twitter.model.vo.AnalysisResult;
 import com.mystory.twitter.repository.ErrorReportRepo;
 import com.mystory.twitter.repository.TwitterContentRepo;
 import com.mystory.twitter.repository.UserInfoRepo;
 import com.mystory.twitter.utils.KeyWordFilter;
 import com.mystory.twitter.utils.KeywordFilterPool;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j;
 import lombok.val;
@@ -62,6 +64,16 @@ public class ClimbTwitter {
     private RequestConfig proxyConfig = null;
     private Gson gson = new Gson();
     private Map<String, String> cachedUrls = new HashMap<>();    //用于getUrlContent,已经查询过URL直接返回结果，不需要再拉取。
+    private Random random = new Random();
+    private LinkedList<Date> urlDate;
+    private LinkedList<Date> twitterDate;
+
+    @Getter
+    private List<AnalysisResult> succeed = new ArrayList<>();
+    @Getter
+    private List<AnalysisResult> failed = new ArrayList<>();
+    @Getter
+    private List<String> nearlyFetchedUser = new ArrayList<>();
 
     /**
      * 根据配置文件中的值，确定是否设置网络代理
@@ -75,12 +87,36 @@ public class ClimbTwitter {
         proxyConfig = configBuilder.build();
     }
 
-    private void rateControl() {
+    private void sleep(long sleepTime) {
         try {
-            TimeUnit.MILLISECONDS.sleep(100);
+            TimeUnit.MILLISECONDS.sleep(sleepTime);
         } catch (InterruptedException e) {
             log.warn("Sleep Interrupted in rate Control");
         }
+    }
+
+    private void rateControl(String from) {
+        long sleepTime = 0;
+        long rate  = 0;         //一分钟最多爬几个
+        LinkedList<Date> queue = null;
+        if (from.equals("url")){
+            queue = urlDate;
+            rate = 5;   //url最快一分钟爬5个
+        }else if (from.equals("twitter")){
+            queue = twitterDate;
+            rate = 1;   //推文最快1分钟爬一个
+        } else return;
+
+        Date nowDate = new Date();
+        if (queue.size() == rate && (nowDate.getTime() - queue.peek().getTime() < 1000 * 60)) {
+            sleepTime = 1000 * 60 - (nowDate.getTime() - queue.peek().getTime());
+            sleep(sleepTime);   //先睡到一分钟整再说啦
+            urlDate.pop();
+        }
+        sleepTime = random.nextInt(30000);
+        sleep(sleepTime);
+        queue.push(nowDate);
+
     }
 
     /**
@@ -96,13 +132,14 @@ public class ClimbTwitter {
                 HttpGet httpGet = new HttpGet(uri);
                 httpGet.setConfig(proxyConfig);
                 httpGet.setHeader("User-Agent",
-                        "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:50.0) Gecko/20100101 Firefox/50.0");
+                    "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:50.0) Gecko/20100101 Firefox/50.0");
                 HttpResponse response = httpClient.execute(httpGet);
                 //这里可以解析header的"content-type"字段（可能有各种大小写区别），寻找charset字段来确定具体的charset，不过目前就默认Utf-8了
                 //response.getHeaders("content-type")
                 HttpEntity entity = response.getEntity();
                 String entityString = EntityUtils.toString(entity, "UTF-8");
                 cachedUrls.put(url, entityString);
+                rateControl("url");
             }
             return cachedUrls.get(url);
         } catch (Exception e) {
@@ -119,7 +156,7 @@ public class ClimbTwitter {
      */
     private String getNarrowUrlContent(String wholeUrlContent) {
         String ret = new String();
-        Pattern p = Pattern.compile("<p(.*?)</p>",Pattern.CASE_INSENSITIVE);
+        Pattern p = Pattern.compile("<p(.*?)</p>", Pattern.CASE_INSENSITIVE);
         Matcher matcher = p.matcher(wholeUrlContent);
         while (matcher.find()) {
             ret += matcher.group(1);
@@ -135,7 +172,7 @@ public class ClimbTwitter {
      * @param filter
      * @return foundPlace，有可能包含MatchPlace.mayMissed，MatchPlace.narrowMatched，MatchPlace.originURL的任意组合
      */
-    public Integer analysisUrlEntity(Status status, TwitterContent twitterContent, KeyWordFilter filter) {
+    private Integer analysisUrlEntity(Status status, TwitterContent twitterContent, KeyWordFilter filter) {
         Integer foundPlace = 0;
         ArrayList<String> narrowMatchedUrls = new ArrayList<>();
         ArrayList<String> wideMatchedUrls = new ArrayList<>();
@@ -176,7 +213,7 @@ public class ClimbTwitter {
         return foundPlace;
     }
 
-    public Integer analysisStatus(Status status, TwitterContent twitterContent, KeyWordFilter filter, String uuid, Boolean isQuoted) {
+    private Integer analysisStatus(Status status, TwitterContent twitterContent, KeyWordFilter filter, String uuid, Boolean isQuoted) {
         Integer foundPlace = 0;
         twitterContent.setSubjectID(uuid);
         twitterContent.setIsQuoted(isQuoted);
@@ -216,6 +253,9 @@ public class ClimbTwitter {
     }
 
     public String analysis(String screenName) {
+        succeed.clear();
+        failed.clear();
+        nearlyFetchedUser.clear();
         initNetwork();
         List<UserInfo> users;
         if (screenName == null)
@@ -231,10 +271,14 @@ public class ClimbTwitter {
                 return "User Not Found";
             }
         }
-        Integer allMatched = 0;
         for (val user : users) {
+            int allMatched = 0;
+            if (new Date().getTime() - user.getLastFetchTime().getTime() < 1000 * 60 * 60 * 12) {
+                nearlyFetchedUser.add(user.getScreenName());
+                continue;
+            }
             ArrayList<Status> statuses = new ArrayList<>();
-            Integer pageNo = 1;
+            int pageNo = 1;
             Long startId = user.getFirstGotID();
             Long finishID = user.getLastGotID();
             outer:
@@ -244,7 +288,7 @@ public class ClimbTwitter {
                     val grapedStatus = twitter.getUserTimeline(user.getScreenName(), page);
                     for (Status status : grapedStatus) {
                         if (status.getCreatedAt().after(user.getStartTime())
-                                && status.getCreatedAt().before(user.getFinishTime())) {
+                            && status.getCreatedAt().before(user.getFinishTime())) {
                             if (user.getKeywordChanged()) {
                                 //当keyword发生变化时，所有的推文都需要匹配
                                 statuses.add(status);
@@ -262,6 +306,7 @@ public class ClimbTwitter {
                     pageNo++;
                 } catch (Exception e) {
                     log.error(String.format("Can't get Twitter for User %s", user.getScreenName()));
+                    failed.add(new AnalysisResult(user.getScreenName(), 0, false));
                     break;
                 }
             }
@@ -283,9 +328,12 @@ public class ClimbTwitter {
             }
             user.setFirstGotID(startId);
             user.setLastGotID(finishID);
+            user.setLastFetchTime(new Date());
+            succeed.add(new AnalysisResult(user.getScreenName(), allMatched, true));
             userInfoRepo.save(user);
+            rateControl("url");
         }
-        return "finished analysis and " + allMatched + " matched tweets are found";
+        return "更新完毕";
     }
 
     private void enrichTwitterContent(@NonNull TwitterContent twitterContent, @NonNull Status status) {

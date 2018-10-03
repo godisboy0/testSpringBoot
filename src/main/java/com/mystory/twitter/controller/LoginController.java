@@ -22,6 +22,7 @@ class FuncMenuFactory {
     private static FuncMenu batchSetUserInfoFunc = new FuncMenu("批量设置需要爬取的推特账号", "/func/insertUser");
     private static FuncMenu deleteUserInfoFunc = new FuncMenu("批量删除需要爬取的推特账号", "/func/deleteUser");
     private static FuncMenu errorReport = new FuncMenu("报告发现的行为异常", "/func/errorReport");
+    private static FuncMenu startClimb = new FuncMenu("开始爬取","/func/fetchNow");
     //考虑到所有的普通用户权限都一样，暂时没必要增加这个愚蠢的功能。
     //private static FuncMenu addOathUser = new FuncMenu("新添加用户", "/addUser/new");
     //private static FuncMenu deleteOathUser = new FuncMenu("删除用户", "/addUser/delete");
@@ -47,6 +48,7 @@ class FuncMenuFactory {
             adminFuncs = new ArrayList<>(generalFuncs);
             adminFuncs.add(batchSetUserInfoFunc);
             adminFuncs.add(deleteUserInfoFunc);
+            adminFuncs.add(startClimb);
             //adminFuncs.add(addOathUser);
             //adminFuncs.add(deleteOathUser);
         }

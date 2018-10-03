@@ -7,7 +7,7 @@ twitter4j:
 
 #所有值均小写
 proxy:
-  type: "socks5"
+  type: "socks"
   host: "127.0.0.1"
   port: 1080
   user: null

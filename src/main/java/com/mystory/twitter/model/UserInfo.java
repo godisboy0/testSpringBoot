@@ -23,6 +23,7 @@ public class UserInfo {
     private Long firstGotID;
     private Date startTime;
     private Date finishTime;
+    private Date lastFetchTime;     //当点击爬取按钮时，上次爬取时间太近的人将不予再次爬取
     private Boolean keywordChanged; //按ID筛选时用，当keyword更改过时不进行ID筛选
 
 }

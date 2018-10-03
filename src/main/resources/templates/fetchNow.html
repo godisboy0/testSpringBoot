@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <title>开始爬取</title>
+    <link rel="stylesheet" type="text/css" href="/css/common.css"/>
+</head>
+<body>
+<h1 align="center">开始爬取</h1>
+<h3 align="center" style="color:#282bff"><a href="../func">返回功能选择界面</a></h3>
+<form method="post">
+    <div align="center">
+        <button style="width:342px;height: 100px;background-color: antiquewhite;font-size: 60px; ">开始抓取</button>
+    </div>
+    <div th:if="${fetched}" align="center">
+        <div>
+            <h3>============================================================</h3>
+        </div>
+        <table border="1">
+            <tr align="center"><td colspan="3">成功抓取以下用户数据</td></tr>
+            <tr align="center"><td width="40">序号</td><td width="200">用户名</td><td width="80">匹配条数</td></tr>
+            <tr th:each="suc,sucStat:${succeed}">
+                <th th:text="${sucStat.count}">1</th>
+                <th th:text="${suc.screenName}">screenName</th>
+                <th th:text="${suc.updatedNum}">20</th>
+            </tr>
+        </table>
+    </div>
+    <div th:if="${fetched}" align="center">
+        <div>
+            <h3>============================================================</h3>
+        </div>
+        <table border="1">
+            <tr align="center"><td colspan="3">以下用户抓取失败或抓取不完全</td></tr>
+            <tr align="center"><td width="40">序号</td><td width="200">用户名</td><td width="80">匹配条数</td></tr>
+            <tr th:each="suc,sucStat:${failed}">
+                <th th:text="${sucStat.count}">1</th>
+                <th th:text="${suc.screenName}">screenName</th>
+                <th th:text="${suc.updatedNum}">20</th>
+            </tr>
+        </table>
+    </div>
+    <div th:if="${fetched}" align="center">
+        <div>
+            <h3>============================================================</h3>
+        </div>
+        <table border="1">
+            <tr align="center"><td colspan="3">以下用户因为12小时内刚抓取过所以未抓取新的数据</td></tr>
+            <tr align="center"><td width="40">序号</td><td width="280">用户名</td></tr>
+            <tr th:each="suc,sucStat:${nearlyUpdated}">
+                <th th:text="${sucStat.count}">1</th>
+                <th th:text="${suc}"></th>
+            </tr>
+        </table>
+    </div>
+    <p>1.耗时可能相当长，请勿着急，特别是第一次抓取时，可能需要非常之久，按小时算</p>
+    <p>2.处理过程中这个页面可以关闭，无所谓的，只是这样就看不到最后报的结果了</p>
+    <h3 style="color: red">3.耗时可能较长，请勿重复点击！</h3>
+</form>
+</body>
+</html>
