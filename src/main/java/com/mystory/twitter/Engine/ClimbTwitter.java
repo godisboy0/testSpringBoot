@@ -65,8 +65,8 @@ public class ClimbTwitter {
     private Gson gson = new Gson();
     private Map<String, String> cachedUrls = new HashMap<>();    //用于getUrlContent,已经查询过URL直接返回结果，不需要再拉取。
     private Random random = new Random();
-    private LinkedList<Date> urlDate;
-    private LinkedList<Date> twitterDate;
+    private LinkedList<Date> urlDate = new LinkedList<>();
+    private LinkedList<Date> twitterDate = new LinkedList<>();
 
     @Getter
     private List<AnalysisResult> succeed = new ArrayList<>();
@@ -139,7 +139,7 @@ public class ClimbTwitter {
                 HttpEntity entity = response.getEntity();
                 String entityString = EntityUtils.toString(entity, "UTF-8");
                 cachedUrls.put(url, entityString);
-                rateControl("url");
+                //rateControl("url");
             }
             return cachedUrls.get(url);
         } catch (Exception e) {
@@ -273,7 +273,7 @@ public class ClimbTwitter {
         }
         for (val user : users) {
             int allMatched = 0;
-            if (new Date().getTime() - user.getLastFetchTime().getTime() < 1000 * 60 * 60 * 12) {
+            if ( user.getLastFetchTime() != null && new Date().getTime() - user.getLastFetchTime().getTime() < 1000 * 60 * 60 * 12) {
                 nearlyFetchedUser.add(user.getScreenName());
                 continue;
             }
@@ -328,10 +328,10 @@ public class ClimbTwitter {
             }
             user.setFirstGotID(startId);
             user.setLastGotID(finishID);
-            user.setLastFetchTime(new Date());
+            //user.setLastFetchTime(new Date());
             succeed.add(new AnalysisResult(user.getScreenName(), allMatched, true));
             userInfoRepo.save(user);
-            rateControl("url");
+            //rateControl("twitter");
         }
         return "更新完毕";
     }

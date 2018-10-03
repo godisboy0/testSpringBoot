@@ -1,5 +1,6 @@
 package com.mystory.twitter.utils;
 
+import com.google.common.base.Strings;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -36,11 +37,11 @@ public class TwitterCollectFactory {
                 .setOAuthAccessToken(at)
                 .setOAuthAccessTokenSecret(ats);
         if (blocked) {
-            if (proxyType == "socks5" || proxyType == "socks" || proxyType == "socks4") {
+            if (proxyType.equals("socks5") || proxyType.equals("socks") || proxyType.equals("socks4")) {
                 cb.setHttpProxySocks(true);
             }
             cb.setHttpProxyHost(host).setHttpProxyPort(port);
-            if (user != null && password != null) {
+            if (!Strings.isNullOrEmpty(user) && !Strings.isNullOrEmpty(password)) {
                 cb.setHttpProxyUser(user).setHttpProxyPassword(password);
             }
             log.info(String.format("Proxy Settled, Type = %s, Host = %s, Port = %d, user = %s, password = %s",
