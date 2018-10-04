@@ -46,6 +46,7 @@ public class GetTwitterContentController {
                     getFrontTwitterContent(screenNames, startTime, finishTime, narrowMatch);
             modelAndView.addObject("twitterContents", frontTwitterContents);
             modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
+            modelAndView.addObject("getNum",frontTwitterContents.size());
         }
         modelAndView.setViewName("getOne");
         return modelAndView;

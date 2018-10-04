@@ -50,6 +50,9 @@
     <div align="center">
         <button type="submit" style="width:190px;">开始查询</button>
     </div>
+    <div align="center">
+        <p th:text="'共获得' + ${getNum} + '个结果'"></p>
+    </div>
     <div align="center" th:each="twitterContent,twitterContentStat:${twitterContents}">
         <table width="1180">
             <tr>
