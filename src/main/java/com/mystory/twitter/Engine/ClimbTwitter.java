@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.Twitter;
+import twitter4j.TwitterException;
 
 import java.net.URI;
 import java.util.*;
@@ -97,12 +98,12 @@ public class ClimbTwitter {
 
     private void rateControl(String from) {
         long sleepTime = 0;
-        long rate  = 0;         //一分钟最多爬几个
+        long rate = 0;         //一分钟最多爬几个
         LinkedList<Date> queue = null;
-        if (from.equals("url")){
+        if (from.equals("url")) {
             queue = urlDate;
             rate = 5;   //url最快一分钟爬5个
-        }else if (from.equals("twitter")){
+        } else if (from.equals("twitter")) {
             queue = twitterDate;
             rate = 1;   //推文最快1分钟爬一个
         } else return;
@@ -273,65 +274,71 @@ public class ClimbTwitter {
         }
         for (val user : users) {
             int allMatched = 0;
-            if ( user.getLastFetchTime() != null && new Date().getTime() - user.getLastFetchTime().getTime() < 1000 * 60 * 60 * 12) {
+            if (user.getLastFetchTime() != null && new Date().getTime() - user.getLastFetchTime().getTime() < 1000 * 60 * 60 * 12) {
                 nearlyFetchedUser.add(user.getScreenName());
                 continue;
             }
             ArrayList<Status> statuses = new ArrayList<>();
             int pageNo = 1;
             Long startId = user.getFirstGotID();
-            Long finishID = user.getLastGotID();
-            outer:
-            while (true) {    //跳出条件只有时间
-                try {
-                    Paging page = new Paging(pageNo, 200);
-                    val grapedStatus = twitter.getUserTimeline(user.getScreenName(), page);
-                    for (Status status : grapedStatus) {
-                        if (status.getCreatedAt().after(user.getStartTime())
-                            && status.getCreatedAt().before(user.getFinishTime())) {
-                            if (user.getKeywordChanged()) {
-                                //当keyword发生变化时，所有的推文都需要匹配
-                                statuses.add(status);
-                            } else if (status.getId() < startId || status.getId() > finishID) {
-                                //当keyword没有变化时，已经有的ID就可以不再匹配重复了
-                                statuses.add(status);
+            Long finishId = user.getLastGotID();
+            try {
+                if (user.getStartTimeChanged() || user.getKeywordChanged()) {        //只要开始时间变了，或者keywords变了，全都爬取一遍
+                    outer:
+                    while (true) {
+                        Paging page = new Paging(pageNo, 200);
+                        val grapedStatus = twitter.getUserTimeline(user.getScreenName(), page);
+                        rateControl("twitter");
+                        for (Status status : grapedStatus) {
+                            if (status.getCreatedAt().after(user.getStartTime())
+                                && status.getCreatedAt().before(user.getFinishTime())) {
+                                if (user.getKeywordChanged()) {
+                                    //当keyword发生变化时，所有的推文都需要匹配
+                                    statuses.add(status);
+                                } else if (status.getId() < startId || status.getId() > finishId) {
+                                    //当keyword没有变化时，已经有的ID就可以不再匹配重复了
+                                    statuses.add(status);
+                                }
                             }
+                            if (status.getCreatedAt().before(user.getStartTime())) {
+                                user.setKeywordChanged(false);
+                                break outer;
+                            }   //有一个数据的时间已经晚于筛选的结束时间了，直接跳出整个循环。
                         }
-                        if (status.getCreatedAt().before(user.getStartTime())) {
-                            user.setKeywordChanged(false);
-                            break outer;
-                        }   //有一个数据的时间已经晚于筛选的结束时间了，直接跳出整个循环。
+                        pageNo++;
                     }
-                    user.setKeywordChanged(false);
-                    pageNo++;
-                } catch (Exception e) {
-                    log.error(String.format("Can't get Twitter for User %s", user.getScreenName()));
-                    failed.add(new AnalysisResult(user.getScreenName(), 0, false));
-                    break;
+                } else {        //此时开始时间和keyword都没变
+                    Paging page = new Paging(finishId);
+                    val grapedStatus = twitter.getUserTimeline(user.getScreenName(), page);
+                    statuses.addAll(grapedStatus);
                 }
+            } catch (TwitterException e) {
+                log.error(String.format("Can't get Twitter for User %s", user.getScreenName()));
+                failed.add(new AnalysisResult(user.getScreenName(), 0, false));
             }
+            user.setKeywordChanged(false);
+            user.setStartTimeChanged(false);
             //现在我们获得了这个user的符合时间段筛选条件的Status列表
             //现在从KeywordFilterPool中获得一个Filter，进行匹配
+            if (!statuses.isEmpty()) {
+                statuses.sort(Comparator.comparingLong(Status::getId));
+                startId = statuses.get(0).getId();
+                finishId = statuses.get(statuses.size()-1).getId();
+            }
+
             for (Status status : statuses) {
                 KeyWordFilter filter = KeywordFilterPool.getFilter(gson.fromJson(user.getKeyWords(), HashSet.class));
                 TwitterContent twitterContent = new TwitterContent();
                 Integer foundPlace = analysisStatus(status, twitterContent, filter, UUID.randomUUID().toString(), false);
                 if (foundPlace != 0) {
                     ++allMatched;
-                    if (twitterContent.getTweetID() < startId) {
-                        startId = twitterContent.getTweetID();
-                    }
-                    if (twitterContent.getTweetID() > finishID) {
-                        finishID = twitterContent.getTweetID();
-                    }
                 }
             }
             user.setFirstGotID(startId);
-            user.setLastGotID(finishID);
+            user.setLastGotID(finishId);
             //user.setLastFetchTime(new Date());
             succeed.add(new AnalysisResult(user.getScreenName(), allMatched, true));
             userInfoRepo.save(user);
-            //rateControl("twitter");
         }
         return "更新完毕";
     }

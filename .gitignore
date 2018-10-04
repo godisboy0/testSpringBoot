@@ -57,5 +57,6 @@ Temporary Items
 .apdisk
 
 upload_image_folder/
+/Users/mateng/IdeaProjects/testSpringBoot/src/main/resources/privateConfig.yml
 
 # End of https://www.gitignore.io/api/macos

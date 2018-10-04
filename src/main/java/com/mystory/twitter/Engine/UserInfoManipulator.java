@@ -17,8 +17,6 @@ public class UserInfoManipulator {
     UserInfoRepo userInfoRepo;
     private Gson gson = new Gson();
 
-    private final String Description = "设置用户名（例如https://twitter.com/realDonaldTrump中的\"realDonaldTrump\"）、" +
-            "需要筛选的关键词(每个一行)、需要筛选的时间段等";
     private final List<String> errorMessages = Arrays.asList("screenName或keywords不能为空",
             "结束日期比开始日期还早？", "未知原因创建用户失败，maybe数据库挂了", "开始时间为空或格式不对，标准格式为2018-9-20",
             "要删除的用户不存在");
