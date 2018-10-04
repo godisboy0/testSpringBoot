@@ -24,3 +24,4 @@ configFilename: privateConfig.yml
 blocked: false
 swagger:
   enable: false
+debugMode: false

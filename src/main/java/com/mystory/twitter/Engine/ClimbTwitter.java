@@ -53,6 +53,8 @@ public class ClimbTwitter {
     private String proxyuser;
     @Value("${proxy.password}")
     private String proxypassword;
+    @Value("${debugMode}")
+    private Boolean debugMode;
     @Autowired
     UserInfoRepo userInfoRepo;
     @Autowired
@@ -61,6 +63,7 @@ public class ClimbTwitter {
     ErrorReportRepo errorReportRepo;
     @Autowired
     Twitter twitter;
+    private boolean networkInited = false;
     private HttpClient httpClient = HttpClients.createDefault();
     private RequestConfig proxyConfig = null;
     private Gson gson = new Gson();
@@ -80,12 +83,15 @@ public class ClimbTwitter {
      * 根据配置文件中的值，确定是否设置网络代理
      */
     private void initNetwork() {
+        if (networkInited)
+            return;
         RequestConfig.Builder configBuilder = RequestConfig.custom().setConnectTimeout(10000).setConnectionRequestTimeout(10000).setSocketTimeout(10000);
         if (blocked) {
             HttpHost proxy = new HttpHost(proxyhost, proxyport);
             configBuilder = configBuilder.setProxy(proxy).setProxy(proxy);
         }
         proxyConfig = configBuilder.build();
+        networkInited = true;
     }
 
     private void sleep(long sleepTime) {
@@ -97,6 +103,9 @@ public class ClimbTwitter {
     }
 
     private void rateControl(String from) {
+        if(debugMode){
+            return;
+        }
         long sleepTime = 0;
         long rate = 0;         //一分钟最多爬几个
         LinkedList<Date> queue = null;
@@ -114,7 +123,7 @@ public class ClimbTwitter {
             sleep(sleepTime);   //先睡到一分钟整再说啦
             urlDate.pop();
         }
-        sleepTime = random.nextInt(30000);
+        sleepTime = random.nextInt(15000);
         sleep(sleepTime);
         queue.push(nowDate);
 
@@ -140,7 +149,7 @@ public class ClimbTwitter {
                 HttpEntity entity = response.getEntity();
                 String entityString = EntityUtils.toString(entity, "UTF-8");
                 cachedUrls.put(url, entityString);
-                //rateControl("url");
+                rateControl("url");
             }
             return cachedUrls.get(url);
         } catch (Exception e) {
@@ -156,13 +165,13 @@ public class ClimbTwitter {
      * @return
      */
     private String getNarrowUrlContent(String wholeUrlContent) {
-        String ret = new String();
         Pattern p = Pattern.compile("<p(.*?)</p>", Pattern.CASE_INSENSITIVE);
         Matcher matcher = p.matcher(wholeUrlContent);
+        StringBuilder sb = new StringBuilder();
         while (matcher.find()) {
-            ret += matcher.group(1);
+            sb.append(matcher.group(1));
         }
-        return ret;
+        return sb.toString();
     }
 
     /**
@@ -253,7 +262,7 @@ public class ClimbTwitter {
         return foundPlace;
     }
 
-    public String analysis(String screenName) {
+    public synchronized String analysis(String screenName) {
         succeed.clear();
         failed.clear();
         nearlyFetchedUser.clear();
@@ -316,8 +325,6 @@ public class ClimbTwitter {
                 log.error(String.format("Can't get Twitter for User %s", user.getScreenName()));
                 failed.add(new AnalysisResult(user.getScreenName(), 0, false));
             }
-            user.setKeywordChanged(false);
-            user.setStartTimeChanged(false);
             //现在我们获得了这个user的符合时间段筛选条件的Status列表
             //现在从KeywordFilterPool中获得一个Filter，进行匹配
             if (!statuses.isEmpty()) {
@@ -334,9 +341,13 @@ public class ClimbTwitter {
                     ++allMatched;
                 }
             }
-            user.setFirstGotID(startId);
-            user.setLastGotID(finishId);
-            //user.setLastFetchTime(new Date());
+            if(!debugMode) {
+                user.setFirstGotID(startId);
+                user.setLastGotID(finishId);
+                user.setKeywordChanged(false);
+                user.setStartTimeChanged(false);
+                user.setLastFetchTime(new Date());
+            }
             succeed.add(new AnalysisResult(user.getScreenName(), allMatched, true));
             userInfoRepo.save(user);
         }

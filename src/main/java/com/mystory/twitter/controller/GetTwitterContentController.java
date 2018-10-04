@@ -31,7 +31,7 @@ public class GetTwitterContentController {
                                      @DateTimeFormat(pattern = "yyyy-MM-dd") Date startTime,
                                      @RequestParam(value = "finishTime", required = false)
                                      @DateTimeFormat(pattern = "yyyy-MM-dd") Date finishTime,
-                                     @RequestParam(value = "narrowMatch") Boolean narrowMatch,
+                                     @RequestParam(value = "narrowMatch",required = false) boolean narrowMatch,
                                      ModelAndView modelAndView, HttpSession httpSession) {
         if (finishTime == null) {
             finishTime = new Date(2018, 0, 1);

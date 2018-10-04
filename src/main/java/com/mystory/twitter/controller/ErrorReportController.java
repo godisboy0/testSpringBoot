@@ -1,7 +1,5 @@
 package com.mystory.twitter.controller;
 
-
-import com.google.gson.Gson;
 import com.mystory.twitter.model.ErrorReport;
 import com.mystory.twitter.model.OathUser;
 import com.mystory.twitter.repository.ErrorReportRepo;

@@ -18,13 +18,13 @@ public class UserInfoManipulator {
     private Gson gson = new Gson();
 
     private final List<String> errorMessages = Arrays.asList("screenName或keywords不能为空",
-            "结束日期比开始日期还早？", "未知原因创建用户失败，maybe数据库挂了", "开始时间为空或格式不对，标准格式为2018-9-20",
-            "要删除的用户不存在");
+        "结束日期比开始日期还早？", "未知原因创建用户失败，maybe数据库挂了", "开始时间为空或格式不对，标准格式为2018-9-20",
+        "要删除的用户不存在");
     private final List<String> successMessages = Arrays.asList("已创建或更新用户", "已删除用户");
 
     private String set(String screenName, String keyWords, Date startDate, Date finishDate) {
         if (Strings.isNullOrEmpty(keyWords) || Strings.isNullOrEmpty(screenName) ||
-                isNullorDeepEmpty(Arrays.asList(keyWords.split("[;；]")))) {
+            isNullorDeepEmpty(Arrays.asList(keyWords.split("[;；]")))) {
             return errorMessages.get(0);
         }
         finishDate = finishDate == null ? new Date(2018, 0, 1) : finishDate;
@@ -45,13 +45,17 @@ public class UserInfoManipulator {
             UserInfo oldUserInfo = userInfoRepo.findByScreenName(userInfo.getScreenName());
             if (oldUserInfo == null) {
                 userInfo.setKeywordChanged(true);
+                userInfo.setStartTimeChanged(true);
                 userInfo.setLastGotID(0L);
                 userInfo.setFirstGotID(Long.MAX_VALUE);
-            } else if (!oldUserInfo.getKeyWords().equals(userInfo.getKeyWords())) {
+                userInfo.setLastFetchTime(new Date(2018 - 1990, 2, 2));
+            } else if (!oldUserInfo.getKeyWords().equals(userInfo.getKeyWords()) || !oldUserInfo.getStartTime().equals(userInfo.getStartTime())) {
+                userInfo.setStartTimeChanged(true);
                 userInfo.setKeywordChanged(true);
                 userInfo.setLastGotID(0L);
                 userInfo.setFirstGotID(Long.MAX_VALUE);
-            } else userInfo.setKeywordChanged(false);
+                userInfo.setLastFetchTime(new Date(2018 - 1990, 2, 2));
+            }
             userInfoRepo.save(userInfo);
             return successMessages.get(0);
         } catch (Exception e) {
@@ -85,7 +89,7 @@ public class UserInfoManipulator {
     private List<String> filter(List<String> list) {
         List<String> ret = new ArrayList<>();
         for (String element : list) {
-            if (element.contains(" ") || element.contains("\n") || element.contains("\t")) {
+            if (!element.matches("[A-Za-z0-9.]+")) {
                 continue;
             }
             ret.add(element);
