@@ -5,6 +5,7 @@ import com.mystory.twitter.model.OathUser;
 import com.mystory.twitter.repository.ErrorReportRepo;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -20,12 +21,14 @@ public class ErrorReportController {
     ErrorReportRepo errorReportRepo;
 
     @GetMapping("/errorReport")
+    @PreAuthorize("hasRole('admin') or hasRole('user')")
     public ModelAndView reportErrorPage(ModelAndView modelAndView) {
         modelAndView.setViewName("errorReport");
         return modelAndView;
     }
 
     @PostMapping("/errorReport")
+    @PreAuthorize("hasRole('admin') or hasRole('user')")
     public ModelAndView reportError(@RequestParam(value = "errorUrl") String errorUrl,
                                     @RequestParam(value = "description") String description,
                                     HttpSession session,
@@ -37,7 +40,7 @@ public class ErrorReportController {
             errorReport.setDescription(description);
             errorReport.setReportTime(new Date());
             if (session.getAttribute("User") != null)
-                errorReport.setReportBy(((OathUser) session.getAttribute("User")).getUserName());
+                errorReport.setReportBy(((OathUser) session.getAttribute("User")).getUsername());
             errorReportRepo.save(errorReport);
             modelAndView.addObject("reportStatus","报告成功");
         } catch (Exception e) {

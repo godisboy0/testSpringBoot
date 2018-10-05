@@ -6,6 +6,7 @@ import com.mystory.twitter.model.UserInfo;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -14,15 +15,16 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping("/func")
+@RequestMapping("/root")
 @Api(description = "插入用户数据")
 public class UserInfoController {
     @Autowired
-    UserInfoManipulator userInfoManipulator;
+    private UserInfoManipulator userInfoManipulator;
     @Autowired
     private TwitterContentServer twitterContentServer;
 
     @GetMapping("/insertUser")
+    @PreAuthorize("hasRole('admin')")
     public ModelAndView getInsertOnePage(ModelAndView modelAndView) {
         modelAndView.setViewName("insertUserInfo");
         modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
@@ -30,9 +32,10 @@ public class UserInfoController {
     }
 
     @PostMapping("/insertUser")
+    @PreAuthorize("hasRole('admin')")
     public ModelAndView batchUpdateDateAndKeywords(@RequestParam(value = "sname") String screenNames,
-                                                   @RequestParam(value = "keywords", required = false) String keyWords,
-                                                   @RequestParam(value = "startTime", required = false)
+                                                   @RequestParam(value = "keywords") String keyWords,
+                                                   @RequestParam(value = "startTime")
                                                    @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
                                                    @RequestParam(value = "finishTime", required = false)
                                                    @DateTimeFormat(pattern = "yyyy-MM-dd") Date finishDate,
@@ -43,12 +46,8 @@ public class UserInfoController {
         return modelAndView;
     }
 
-//    @GetMapping("/status")
-//    public String updateStatus(@ModelAttribute("message") String message) {
-//        return message;
-//    }
-
     @GetMapping("/deleteUser")
+    @PreAuthorize("hasRole('admin')")
     public ModelAndView deleteOnePage(ModelAndView modelAndView) {
         modelAndView.setViewName("deleteUserInfo");
         modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
@@ -56,6 +55,7 @@ public class UserInfoController {
     }
 
     @PostMapping("/deleteUser")
+    @PreAuthorize("hasRole('admin')")
     public ModelAndView deleteOne(@RequestParam(value = "sname") String screenNames, ModelAndView modelAndView) {
 
         modelAndView.setViewName("deleteUserInfo");
@@ -65,6 +65,7 @@ public class UserInfoController {
     }
 
     @GetMapping("/findUserInfo")
+    @PreAuthorize("hasRole('admin')")
     public ModelAndView getUserInfoPage(ModelAndView modelAndView) {
         modelAndView.setViewName("findUserInfo");
         modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
@@ -72,6 +73,7 @@ public class UserInfoController {
     }
 
     @PostMapping("/findUserInfo")
+    @PreAuthorize("hasRole('admin')")
     public ModelAndView getUserInfo(@RequestParam(value = "sname") String screenNames,ModelAndView modelAndView){
         modelAndView.setViewName("findUserInfo");
         modelAndView.addObject("userInfos",userInfoManipulator.get(screenNames));

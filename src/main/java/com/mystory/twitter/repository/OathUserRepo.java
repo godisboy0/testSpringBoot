@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface OathUserRepo extends CrudRepository<OathUser, String> {
-    @Query(value = "select user_name from oath_user",nativeQuery = true)
-    List<String> findUserName();
-    OathUser findByUserName(String userName);
+//    @Query(value = "select user_name from oath_user",nativeQuery = true)
+//    List<String> findUserName();
+//    OathUser findByUsername(String userName);
 }

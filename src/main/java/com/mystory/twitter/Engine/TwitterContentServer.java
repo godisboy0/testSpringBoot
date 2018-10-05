@@ -20,8 +20,6 @@ public class TwitterContentServer {
     TwitterContentRepo twitterContentRepo;
     private Gson gson = new Gson();
 
-    private Set<String> ret = null;
-
     public String getAllScreenNames() {
         StringBuilder stringBuilder = new StringBuilder();
         for (UserInfo userInfo : userInfoRepo.findAll()) {

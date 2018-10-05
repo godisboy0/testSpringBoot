@@ -1,6 +1,13 @@
 package com.mystory.twitter.controller;
 
+import com.mystory.twitter.model.OathUser;
+import com.mystory.twitter.model.SysUser;
 import com.mystory.twitter.utils.FuncMenu;
+import com.mystory.twitter.utils.FuncMenuFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -11,19 +18,28 @@ import java.util.List;
 @RequestMapping("/func")
 public class FuncMenuController {
 
-    @GetMapping
-    public ModelAndView showFunc(ModelAndView modelAndView, HttpSession session) {
-        if (session.getAttribute("functions") == null) {
-            return new ModelAndView("/error");
+    List<FuncMenu> userMenu  = FuncMenuFactory.getGeneralFuncs();
+    List<FuncMenu> adminMenu = FuncMenuFactory.getAdminFuncs();
+
+    private boolean isAdmin(SysUser sysUser){
+        for(OathUser user:sysUser.getRoles()){
+            if (user.getRole().equals("admin"))
+                return true;
         }
-        String funcString = (String) session.getAttribute("functions");
+        return false;
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('admin','user')")
+    public ModelAndView showFunc(ModelAndView modelAndView, HttpSession session) {
+        SecurityContext ctx = SecurityContextHolder.getContext();
+        Authentication auth = ctx.getAuthentication();
+        SysUser user = (SysUser) auth.getPrincipal();
         List<FuncMenu> funcs;
-        if (funcString.equals("adminMenu")) {
-            funcs = FuncMenuFactory.getAdminFuncs();
-        } else if (funcString.equals("generalMenu")) {
-            funcs = FuncMenuFactory.getAdminFuncs();
-        } else {
-            return new ModelAndView("/error");
+        if (isAdmin(user)){
+            funcs = adminMenu;
+        }else{
+            funcs = userMenu;
         }
         modelAndView.addObject("functions", funcs);
         modelAndView.setViewName("func");

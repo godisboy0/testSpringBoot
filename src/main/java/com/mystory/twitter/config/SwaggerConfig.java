@@ -11,7 +11,7 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 
 @Configuration
-public class SwaggerConfiguration {
+public class SwaggerConfig {
     @Value("${swagger.enable}")
     private boolean enableSwagger;
 

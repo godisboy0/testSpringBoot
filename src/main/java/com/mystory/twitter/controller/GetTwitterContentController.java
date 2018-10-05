@@ -5,6 +5,7 @@ import com.mystory.twitter.Engine.TwitterContentServer;
 import com.mystory.twitter.model.FrontTwitterContent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -19,6 +20,7 @@ public class GetTwitterContentController {
     private TwitterContentServer twitterContentServer;
 
     @GetMapping("/getOne")
+    @PreAuthorize("hasRole('admin') or hasRole('user')")
     public ModelAndView getOne(ModelAndView modelAndView, HttpSession session) {
         modelAndView.setViewName("getOne");
         modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
@@ -26,6 +28,7 @@ public class GetTwitterContentController {
     }
 
     @PostMapping("/getOne")
+    @PreAuthorize("hasRole('admin') or hasRole('user')")
     public ModelAndView postToGetOne(@RequestParam(value = "sname") String screenNames,
                                      @RequestParam(value = "startTime", required = false)
                                      @DateTimeFormat(pattern = "yyyy-MM-dd") Date startTime,
@@ -51,14 +54,5 @@ public class GetTwitterContentController {
         modelAndView.setViewName("getOne");
         return modelAndView;
     }
-
-//    /**
-//     * 返回所有已收集到的结果，这样做无逻辑，暂不支持。
-//     * @return
-//     */
-//    @GetMapping("/getAll")
-//    public List<TwitterContent> getAll(){
-//        return twitterContentRepo.findAll();
-//    }
 
 }

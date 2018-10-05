@@ -10,6 +10,10 @@
 <h3 align="center" style="color:#282bff"><a href="../func">返回功能选择界面</a></h3>
 <form method="post">
     <div align="center">
+        <p>已经在数据库中的用户名</p>
+        <p th:text="${screenNames}"></p>
+    </div>
+    <div align="center">
         <button style="width:342px;height: 100px;background-color: antiquewhite;font-size: 60px; ">开始抓取</button>
     </div>
     <div th:if="${fetched}" align="center">
