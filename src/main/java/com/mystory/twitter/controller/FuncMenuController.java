@@ -23,7 +23,7 @@ public class FuncMenuController {
 
     private boolean isAdmin(SysUser sysUser){
         for(OathUser user:sysUser.getRoles()){
-            if (user.getRole().equals("admin"))
+            if (user.getRole().contains("admin"))
                 return true;
         }
         return false;

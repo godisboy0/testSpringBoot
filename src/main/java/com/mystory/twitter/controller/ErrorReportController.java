@@ -21,14 +21,14 @@ public class ErrorReportController {
     ErrorReportRepo errorReportRepo;
 
     @GetMapping("/errorReport")
-    @PreAuthorize("hasRole('admin') or hasRole('user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     public ModelAndView reportErrorPage(ModelAndView modelAndView) {
         modelAndView.setViewName("errorReport");
         return modelAndView;
     }
 
     @PostMapping("/errorReport")
-    @PreAuthorize("hasRole('admin') or hasRole('user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     public ModelAndView reportError(@RequestParam(value = "errorUrl") String errorUrl,
                                     @RequestParam(value = "description") String description,
                                     HttpSession session,

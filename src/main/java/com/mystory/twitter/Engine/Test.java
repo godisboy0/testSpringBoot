@@ -1,6 +1,5 @@
 package com.mystory.twitter.Engine;
 
-import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.mystory.twitter.model.UserInfo;
 import org.apache.http.HttpHost;

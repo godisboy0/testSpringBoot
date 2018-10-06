@@ -21,7 +21,6 @@ public class SysUser implements UserDetails {
     private Integer id;
 
     private String username;
-    @Column(length = 50)
     private String password;        //加密后的密码
 
     @ManyToMany(cascade = {CascadeType.REFRESH},fetch = FetchType.EAGER)
