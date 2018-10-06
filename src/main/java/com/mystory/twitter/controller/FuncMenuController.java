@@ -18,8 +18,8 @@ import java.util.List;
 @RequestMapping("/func")
 public class FuncMenuController {
 
-    List<FuncMenu> userMenu  = FuncMenuFactory.getGeneralFuncs();
-    List<FuncMenu> adminMenu = FuncMenuFactory.getAdminFuncs();
+    private List<FuncMenu> userMenu  = FuncMenuFactory.getGeneralFuncs();
+    private List<FuncMenu> adminMenu = FuncMenuFactory.getAdminFuncs();
 
     private boolean isAdmin(SysUser sysUser){
         for(OathUser user:sysUser.getRoles()){
