@@ -7,11 +7,13 @@ import com.mystory.twitter.model.TwitterContent;
 import com.mystory.twitter.model.UserInfo;
 import com.mystory.twitter.repository.TwitterContentRepo;
 import com.mystory.twitter.repository.UserInfoRepo;
+import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@Log4j
 @Service
 public class TwitterContentServer {
     @Autowired
@@ -46,6 +48,7 @@ public class TwitterContentServer {
     }
 
     public List<FrontTwitterContent> getFrontTwitterContent(String screenNames, Date startTime, Date finishTime, Boolean narrowMatch) {
+        log.info("read stored matched tweet for " + screenNames);
         List<FrontTwitterContent> ret = new ArrayList<>();
         List<TwitterContent> twitterContents = new ArrayList<>();
         List<String> names = Arrays.asList(screenNames.split("[;；]"));

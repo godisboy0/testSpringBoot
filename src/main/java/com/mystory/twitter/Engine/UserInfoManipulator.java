@@ -107,6 +107,7 @@ public class UserInfoManipulator {
      */
     public String batchSet(String usersString, Date startDate, Date finishDate, String keyWordsString) {
 
+        log.info("插入用户数据for " + usersString);
         List<String> users = new ArrayList<String>(Arrays.asList(usersString.split("[;；]")));
         List<String> failNames = new ArrayList<>();
         List<String> successNames = new ArrayList<>();

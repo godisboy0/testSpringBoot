@@ -14,9 +14,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j;
 import lombok.val;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -67,8 +65,10 @@ public class ClimbTwitter {
     private HttpClient httpClient = HttpClients.createDefault();
     private RequestConfig proxyConfig = null;
     private Gson gson = new Gson();
-    private Map<String, String> cachedUrls = new HashMap<>();    //用于getUrlContent,已经查询过URL直接返回结果，不需要再拉取。
+    //cache会大量消耗内存
+    //private Map<String, String> cachedUrls = new HashMap<>();    //用于getUrlContent,已经查询过URL直接返回结果，不需要再拉取。
     private Random random = new Random();
+    //一样会消耗内存
     private LinkedList<Date> urlDate = new LinkedList<>();
     private LinkedList<Date> twitterDate = new LinkedList<>();
 
@@ -83,12 +83,14 @@ public class ClimbTwitter {
      * 根据配置文件中的值，确定是否设置网络代理
      */
     private void initNetwork() {
+        log.info("初始化网络环境");
         if (networkInited)
             return;
         RequestConfig.Builder configBuilder = RequestConfig.custom().setConnectTimeout(10000).setConnectionRequestTimeout(10000).setSocketTimeout(10000);
         if (blocked) {
             HttpHost proxy = new HttpHost(proxyhost, proxyport);
             configBuilder = configBuilder.setProxy(proxy).setProxy(proxy);
+            log.info("开启proxy模式");
         }
         proxyConfig = configBuilder.build();
         networkInited = true;
@@ -103,7 +105,7 @@ public class ClimbTwitter {
     }
 
     private void rateControl(String from) {
-        if(debugMode){
+        if (debugMode) {
             return;
         }
         long sleepTime = 0;
@@ -126,7 +128,7 @@ public class ClimbTwitter {
         sleepTime = random.nextInt(15000);
         sleep(sleepTime);
         queue.push(nowDate);
-
+        log.info("rate control " + from);
     }
 
     /**
@@ -136,22 +138,30 @@ public class ClimbTwitter {
      * @return 如get到文本，为文本，如果get不到文本，为空字符串
      */
     private String getUrlContent(String url) {
+        log.info("get content for " + url);
         try {
-            if (cachedUrls.get(url) == null) {
-                URI uri = new URIBuilder(url).build();
-                HttpGet httpGet = new HttpGet(uri);
-                httpGet.setConfig(proxyConfig);
-                httpGet.setHeader("User-Agent",
-                    "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:50.0) Gecko/20100101 Firefox/50.0");
-                HttpResponse response = httpClient.execute(httpGet);
-                //这里可以解析header的"content-type"字段（可能有各种大小写区别），寻找charset字段来确定具体的charset，不过目前就默认Utf-8了
-                //response.getHeaders("content-type")
-                HttpEntity entity = response.getEntity();
-                String entityString = EntityUtils.toString(entity, "UTF-8");
-                cachedUrls.put(url, entityString);
-                rateControl("url");
-            }
-            return cachedUrls.get(url);
+//            if (cachedUrls.get(url) == null) {
+//                URI uri = new URIBuilder(url).build();
+//                HttpGet httpGet = new HttpGet(uri);
+//                httpGet.setConfig(proxyConfig);
+//                httpGet.setHeader("User-Agent",
+//                    "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:50.0) Gecko/20100101 Firefox/50.0");
+//                HttpResponse response = httpClient.execute(httpGet);
+//                //这里可以解析header的"content-type"字段（可能有各种大小写区别），寻找charset字段来确定具体的charset，不过目前就默认Utf-8了
+//                //response.getHeaders("content-type")
+//                HttpEntity entity = response.getEntity();
+//                String entityString = EntityUtils.toString(entity, "UTF-8");
+//                cachedUrls.put(url, entityString);
+//                rateControl("url");
+//            }
+//            return cachedUrls.get(url);
+
+            URI uri = new URIBuilder(url).build();
+            HttpGet httpGet = new HttpGet(uri);
+            httpGet.setConfig(proxyConfig);
+            httpGet.setHeader("User-Agent",
+                "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:50.0) Gecko/20100101 Firefox/50.0");
+            return EntityUtils.toString(httpClient.execute(httpGet).getEntity(), "UTF-8");
         } catch (Exception e) {
             log.error(url + " Can't be enriched " + e.getMessage());
             return "";
@@ -327,10 +337,11 @@ public class ClimbTwitter {
             }
             //现在我们获得了这个user的符合时间段筛选条件的Status列表
             //现在从KeywordFilterPool中获得一个Filter，进行匹配
+            log.info("get " + statuses.size() + " statuses for " + user.getScreenName());
             if (!statuses.isEmpty()) {
                 statuses.sort(Comparator.comparingLong(Status::getId));
                 startId = statuses.get(0).getId();
-                finishId = statuses.get(statuses.size()-1).getId();
+                finishId = statuses.get(statuses.size() - 1).getId();
             }
 
             for (Status status : statuses) {
@@ -341,12 +352,14 @@ public class ClimbTwitter {
                     ++allMatched;
                 }
             }
-            if(!debugMode) {
+            log.info("================get " + allMatched + " matched for " + user.getScreenName() + "========================");
+            if (!debugMode) {
                 user.setFirstGotID(startId);
                 user.setLastGotID(finishId);
                 user.setKeywordChanged(false);
                 user.setStartTimeChanged(false);
                 user.setLastFetchTime(new Date());
+                log.info("更新Userinfo信息for " + user.getScreenName());
             }
             succeed.add(new AnalysisResult(user.getScreenName(), allMatched, true));
             userInfoRepo.save(user);
