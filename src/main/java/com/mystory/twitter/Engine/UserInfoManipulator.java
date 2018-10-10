@@ -24,11 +24,11 @@ public class UserInfoManipulator {
     private final List<String> successMessages = Arrays.asList("已创建或更新用户", "已删除用户");
 
     private String set(String screenName, String keyWords, Date startDate, Date finishDate) {
-        if (Strings.isNullOrEmpty(keyWords)){
+        if (Strings.isNullOrEmpty(keyWords)) {
             return errorMessages.get(0);
         }
         List<String> keyWordList = Arrays.asList(keyWords.split("[;；]"));
-        keyWordList.stream().map(String::trim).filter(Strings::isNullOrEmpty).distinct().collect(Collectors.toList());
+        keyWordList.stream().map(String::trim).filter(s -> !Strings.isNullOrEmpty(s)).distinct().collect(Collectors.toList());
         if (keyWordList.isEmpty()) {
             return errorMessages.get(0);
         }
@@ -71,7 +71,7 @@ public class UserInfoManipulator {
         List<UserInfo> userInfos = new ArrayList<>();
         if (!Strings.isNullOrEmpty(screenNames)) {
             List<String> screenNameList = new ArrayList<String>(Arrays.asList(screenNames.split("[;；]")));
-            screenNameList = screenNameList.stream().map(String::trim).filter(Strings::isNullOrEmpty).distinct().collect(Collectors.toList());
+            screenNameList = screenNameList.stream().map(String::trim).filter(s -> !Strings.isNullOrEmpty(s)).distinct().collect(Collectors.toList());
             for (String screenName : screenNameList)
                 userInfos.add(userInfoRepo.findByScreenName(screenName));
         } else {
@@ -90,8 +90,8 @@ public class UserInfoManipulator {
     public String batchSet(String usersString, Date startDate, Date finishDate, String keyWordsString) {
 
         log.info("插入用户数据for " + usersString);
-        List<String> users = new ArrayList<String>(Arrays.asList(usersString.split("[;；]")));
-        users = users.stream().map(String::trim).distinct().filter(Strings::isNullOrEmpty).collect(Collectors.toList());
+        List<String> users = new ArrayList<>(Arrays.asList(usersString.split("[;；]")));
+        users = users.stream().map(String::trim).filter(s -> !Strings.isNullOrEmpty(s)).filter(s -> s.contains(" ")).distinct().collect(Collectors.toList());
         List<String> failNames = new ArrayList<>();
         List<String> successNames = new ArrayList<>();
 
