@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Log4j
 @Component
@@ -23,8 +24,12 @@ public class UserInfoManipulator {
     private final List<String> successMessages = Arrays.asList("已创建或更新用户", "已删除用户");
 
     private String set(String screenName, String keyWords, Date startDate, Date finishDate) {
-        if (Strings.isNullOrEmpty(keyWords) || Strings.isNullOrEmpty(screenName) ||
-            isNullorDeepEmpty(Arrays.asList(keyWords.split("[;；]")))) {
+        if (Strings.isNullOrEmpty(keyWords)){
+            return errorMessages.get(0);
+        }
+        List<String> keyWordList = Arrays.asList(keyWords.split("[;；]"));
+        keyWordList.stream().map(String::trim).filter(Strings::isNullOrEmpty).distinct().collect(Collectors.toList());
+        if (keyWordList.isEmpty()) {
             return errorMessages.get(0);
         }
         finishDate = finishDate == null ? new Date(2018, 0, 1) : finishDate;
@@ -36,8 +41,6 @@ public class UserInfoManipulator {
         }
         UserInfo userInfo = new UserInfo();
         userInfo.setScreenName(screenName);
-        List<String> keyWordList = Arrays.asList(keyWords.split("[;；]"));
-        keyWordList = filter(keyWordList);
         userInfo.setKeyWords(gson.toJson(new HashSet<>(keyWordList)));
         userInfo.setStartTime(startDate);
         userInfo.setFinishTime(finishDate);
@@ -67,36 +70,15 @@ public class UserInfoManipulator {
     public List<UserInfo> get(String screenNames) {
         List<UserInfo> userInfos = new ArrayList<>();
         if (!Strings.isNullOrEmpty(screenNames)) {
-            for (String screenName : screenNames.split("[;；]"))
+            List<String> screenNameList = new ArrayList<String>(Arrays.asList(screenNames.split("[;；]")));
+            screenNameList = screenNameList.stream().map(String::trim).filter(Strings::isNullOrEmpty).distinct().collect(Collectors.toList());
+            for (String screenName : screenNameList)
                 userInfos.add(userInfoRepo.findByScreenName(screenName));
         } else {
             userInfos.addAll(userInfoRepo.findAll());
         }
         return userInfos;
     }
-
-    private Boolean isNullorDeepEmpty(List<String> list) {
-        if (list == null || list.isEmpty())
-            return true;
-        for (String element : list) {
-            if (!Strings.isNullOrEmpty(element)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private List<String> filter(List<String> list) {
-        List<String> ret = new ArrayList<>();
-        for (String element : list) {
-            if (!element.matches("[A-Za-z0-9.]+")) {
-                continue;
-            }
-            ret.add(element);
-        }
-        return ret;
-    }
-
 
     /**
      * 为指定用户批量设置起始时间、结束时间和关键词.
@@ -109,6 +91,7 @@ public class UserInfoManipulator {
 
         log.info("插入用户数据for " + usersString);
         List<String> users = new ArrayList<String>(Arrays.asList(usersString.split("[;；]")));
+        users = users.stream().map(String::trim).distinct().filter(Strings::isNullOrEmpty).collect(Collectors.toList());
         List<String> failNames = new ArrayList<>();
         List<String> successNames = new ArrayList<>();
 
