@@ -34,6 +34,7 @@ public class ClimbController {
     @PreAuthorize("hasRole('admin')")
     public ModelAndView FetchNow(ModelAndView modelAndView){
         climbTwitter.analysis(null);
+        modelAndView.addObject("screenNames",twitterContentServer.getAllScreenNames());
         modelAndView.addObject("succeed",climbTwitter.getSucceed());
         modelAndView.addObject("failed",climbTwitter.getFailed());
         modelAndView.addObject("nearlyUpdated",climbTwitter.getNearlyFetchedUser());

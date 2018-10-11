@@ -72,8 +72,11 @@ public class UserInfoManipulator {
         if (!Strings.isNullOrEmpty(screenNames)) {
             List<String> screenNameList = new ArrayList<String>(Arrays.asList(screenNames.split("[;；]")));
             screenNameList = screenNameList.stream().map(String::trim).filter(s -> !Strings.isNullOrEmpty(s)).distinct().collect(Collectors.toList());
-            for (String screenName : screenNameList)
-                userInfos.add(userInfoRepo.findByScreenName(screenName));
+            for (String screenName : screenNameList) {
+                UserInfo userInfo = userInfoRepo.findByScreenName(screenName);
+                if (userInfo != null)
+                    userInfos.add(userInfo);
+            }
         } else {
             userInfos.addAll(userInfoRepo.findAll());
         }

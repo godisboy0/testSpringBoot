@@ -10,8 +10,14 @@
 <h3 align="center" style="color:#282bff"><a href="../func">返回功能选择界面</a></h3>
 <form method="post">
     <div align="center">
-        <p>已经在数据库中的用户名</p>
-        <p th:text="${screenNames}"></p>
+        <table width="1080">
+            <tr>
+                <th>已经在数据库中的用户名</th>
+            </tr>
+            <tr>
+                <td th:text="${screenNames}">我既是虫群</td>
+            </tr>
+        </table>
     </div>
     <table border="1" align="center" width="1080">
         <tr>

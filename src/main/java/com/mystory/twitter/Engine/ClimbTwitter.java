@@ -83,9 +83,9 @@ public class ClimbTwitter {
      * 根据配置文件中的值，确定是否设置网络代理
      */
     private void initNetwork() {
-        log.info("初始化网络环境");
         if (networkInited)
             return;
+        log.info("初始化网络环境");
         RequestConfig.Builder configBuilder = RequestConfig.custom().setConnectTimeout(10000).setConnectionRequestTimeout(10000).setSocketTimeout(10000);
         if (blocked) {
             HttpHost proxy = new HttpHost(proxyhost, proxyport);
@@ -105,9 +105,9 @@ public class ClimbTwitter {
     }
 
     private void rateControl(String from) {
-        if (debugMode) {
-            return;
-        }
+//        if (debugMode) {
+//            return;
+//        }
         long sleepTime = 0;
         long rate = 0;         //一分钟最多爬几个
         LinkedList<Date> queue = null;
@@ -123,12 +123,12 @@ public class ClimbTwitter {
         if (queue.size() == rate && (nowDate.getTime() - queue.peek().getTime() < 1000 * 60)) {
             sleepTime = 1000 * 60 - (nowDate.getTime() - queue.peek().getTime());
             sleep(sleepTime);   //先睡到一分钟整再说啦
-            urlDate.pop();
+            queue.pop();
         }
         sleepTime = random.nextInt(15000);
         sleep(sleepTime);
         queue.push(nowDate);
-        log.info("rate control " + from);
+        log.info("rate control for" + from);
     }
 
     /**

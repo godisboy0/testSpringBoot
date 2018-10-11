@@ -95,7 +95,7 @@
                         <tr>
                             <td align="left">
                                 <a href="#" th:href="@{${twitterContent.tweetUrl}}"
-                                   th:text="${twitterContent.tweetUrl}">推文链接</a>
+                                   th:text="${twitterContent.tweetUrl}" target="view_window">推文链接</a>
                             </td>
                         </tr>
                     </table>
@@ -110,7 +110,7 @@
                         </tr>
                         <tr>
                             <td align="left">
-                                <a href="#" th:href="@{${quoted.tweetUrl}}" th:text="${quoted.tweetUrl}">引用推文链接</a>
+                                <a href="#" th:href="@{${quoted.tweetUrl}}" th:text="${quoted.tweetUrl} " target="view_window">引用推文链接</a>
                             </td>
                         </tr>
                     </table>
@@ -121,7 +121,7 @@
                 <th align="left">
                     <table th:each="narrowMatchUrl:${twitterContent.narrowMatchUrls}" align="left">
                         <tr>
-                            <td><a href="#" th:href="@{${narrowMatchUrl}}" th:text="${narrowMatchUrl}">匹配的外链</a></td>
+                            <td><a href="#" th:href="@{${narrowMatchUrl}}" th:text="${narrowMatchUrl}" target="view_window">匹配的外链</a></td>
                         </tr>
                     </table>
                 </th>
@@ -131,7 +131,7 @@
                 <th>
                     <table th:each="wideMatchUrl:${twitterContent.wideMatchUrls}" align="left">
                         <tr>
-                            <td><a href="#" th:href="@{${wideMatchUrl}}" th:text="${wideMatchUrl}">匹配的外链</a></td>
+                            <td><a href="#" th:href="@{${wideMatchUrl}}" th:text="${wideMatchUrl}" target="view_window">匹配的外链</a></td>
                         </tr>
                     </table>
                 </th>
@@ -141,7 +141,7 @@
                 <th>
                     <table th:each="missedUrl:${twitterContent.missedUrls}" align="left">
                         <tr>
-                            <td><a href="#" th:href="@{${missedUrl}}" th:text="${missedUrl}">无法解析数据的外链</a></td>
+                            <td><a href="#" th:href="@{${missedUrl}}" th:text="${missedUrl}" target="view_window">无法解析数据的外链</a></td>
                         </tr>
                     </table>
                 </th>

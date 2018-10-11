@@ -25,7 +25,7 @@ public class TwitterContentServer {
     public String getAllScreenNames() {
         StringBuilder stringBuilder = new StringBuilder();
         for (UserInfo userInfo : userInfoRepo.findAll()) {
-            stringBuilder.append(userInfo.getScreenName()).append(";");
+            stringBuilder.append(userInfo.getScreenName()).append("; ");
         }
         return stringBuilder.toString();
     }
