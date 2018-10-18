@@ -56,9 +56,17 @@ public class TwitterContentServer {
         List<String> names = Arrays.asList(screenNames.split("[;；]")).stream().map(String::trim).filter(s -> !Strings.isNullOrEmpty(s)).filter(s -> !s.contains(" ")).distinct().collect(Collectors.toList());
         for (String name : names) {
             twitterContents.addAll(twitterContentRepo.
+                findByScreenNameAndIsQuotedAndUrlNarrowMatchAndTweetTimeGreaterThanAndTweetTimeLessThan(
+                    name, false, narrowMatch, startTime, finishTime
+                ));
+        }
+        if (!narrowMatch) {
+            for (String name : names) {
+                twitterContents.addAll(twitterContentRepo.
                     findByScreenNameAndIsQuotedAndUrlNarrowMatchAndTweetTimeGreaterThanAndTweetTimeLessThan(
-                            name, false, narrowMatch, startTime, finishTime
+                        name, false, !narrowMatch, startTime, finishTime
                     ));
+            }
         }
         for (TwitterContent twitterContent : twitterContents) {
             FrontTwitterContent frontTwitterContent = new FrontTwitterContent();
