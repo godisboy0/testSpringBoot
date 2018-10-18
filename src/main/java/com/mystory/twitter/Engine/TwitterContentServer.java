@@ -1,5 +1,6 @@
 package com.mystory.twitter.Engine;
 
+import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.mystory.twitter.model.FrontTwitterContent;
 import com.mystory.twitter.model.MatchPlace;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Log4j
 @Service
@@ -51,7 +53,7 @@ public class TwitterContentServer {
         log.info("read stored matched tweet for " + screenNames);
         List<FrontTwitterContent> ret = new ArrayList<>();
         List<TwitterContent> twitterContents = new ArrayList<>();
-        List<String> names = Arrays.asList(screenNames.split("[;；]"));
+        List<String> names = Arrays.asList(screenNames.split("[;；]")).stream().map(String::trim).filter(s -> !Strings.isNullOrEmpty(s)).filter(s -> !s.contains(" ")).distinct().collect(Collectors.toList());
         for (String name : names) {
             twitterContents.addAll(twitterContentRepo.
                     findByScreenNameAndIsQuotedAndUrlNarrowMatchAndTweetTimeGreaterThanAndTweetTimeLessThan(

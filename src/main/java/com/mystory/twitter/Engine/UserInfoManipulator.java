@@ -94,7 +94,7 @@ public class UserInfoManipulator {
 
         log.info("插入用户数据for " + usersString);
         List<String> users = new ArrayList<>(Arrays.asList(usersString.split("[;；]")));
-        users = users.stream().map(String::trim).filter(s -> !Strings.isNullOrEmpty(s)).filter(s -> s.contains(" ")).distinct().collect(Collectors.toList());
+        users = users.stream().map(String::trim).filter(s -> !Strings.isNullOrEmpty(s)).filter(s -> !s.contains(" ")).distinct().collect(Collectors.toList());
         List<String> failNames = new ArrayList<>();
         List<String> successNames = new ArrayList<>();
 
