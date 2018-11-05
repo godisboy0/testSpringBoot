@@ -3,13 +3,21 @@ package com.mystory.twitter.controller;
 
 import com.mystory.twitter.Engine.TwitterContentServer;
 import com.mystory.twitter.model.FrontTwitterContent;
+import com.mystory.twitter.model.TwitterContent;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
@@ -53,6 +61,35 @@ public class GetTwitterContentController {
         }
         modelAndView.setViewName("getOne");
         return modelAndView;
+    }
+
+    @GetMapping("/downloadExcel")
+    @PreAuthorize("hasRole('admin') or hasRole('user')")
+    public void downLoadFile(HttpServletResponse response) {
+
+        String fileName = "twitter-content" +  LocalDate.now().toString() + ".xlsx";
+
+        Workbook workbook = twitterContentServer.getExcelForDownload();
+
+        OutputStream out = null;
+        try {
+            response.reset();
+            response.setContentType("application/octet-stream; charset=utf-8");
+            response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+            out = response.getOutputStream();
+            workbook.write(out);
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 }

@@ -1,6 +1,7 @@
 package com.mystory.twitter.Engine;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.mystory.twitter.model.FrontTwitterContent;
 import com.mystory.twitter.model.MatchPlace;
@@ -9,6 +10,14 @@ import com.mystory.twitter.model.UserInfo;
 import com.mystory.twitter.repository.TwitterContentRepo;
 import com.mystory.twitter.repository.UserInfoRepo;
 import lombok.extern.log4j.Log4j;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -94,6 +103,54 @@ public class TwitterContentServer {
         }
 
         return ret;
+    }
+
+    public Workbook getExcelForDownload() {
+        Date startTime = new Date(0, 0, 1);
+        Date finishTime = new Date(2018, 0, 1);
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet();
+        Row row = sheet.createRow(0);
+        for (String sheetName : Lists.newArrayList("screenName", "发推时间", "匹配的关键字",
+            "推特内容", "推特地址", "匹配位置", "引用推文", "窄匹配链接", "宽匹配链接", "未解析成功的链接")) {
+            row.createCell(row.getLastCellNum()).setCellValue(sheetName);
+        }
+        List<FrontTwitterContent> twitterContents = getFrontTwitterContent(
+            userInfoRepo.findAll().stream().map(UserInfo::getScreenName).collect(Collectors.joining(",")),
+            startTime, finishTime, false);
+        for (FrontTwitterContent twitterContent : twitterContents) {
+            row = sheet.createRow(sheet.getLastRowNum());
+            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getScreenName());
+            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getTweetTime());
+            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getMatchKeyword());
+            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getTweetContent());
+            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getTweetUrl());
+            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getMatchPlace());
+            StringBuilder sb = new StringBuilder();
+            for (Map<String, String> quotedTweet : twitterContent.getQuotedTweets()) {
+                sb.append(quotedTweet.get("tweetContent")).append("tweetUrl").append("  ;\n");
+            }
+            row.createCell(row.getLastCellNum()).setCellValue(sb.toString());
+            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getNarrowMatchUrls().stream().collect(Collectors.joining("  ;\n")));
+            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getWideMatchUrls().stream().collect(Collectors.joining("  ;\n")));
+            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getMissedUrls().stream().collect(Collectors.joining("  ;\n")));
+            XSSFCellStyle xssfCellStyle = ((XSSFWorkbook) workbook).createCellStyle();
+            xssfCellStyle.setFillBackgroundColor(XSSFColor.toXSSFColor(HSSFColor.HSSFColorPredefined.LIGHT_YELLOW.getColor()));
+            if (twitterContent.getMatchPlace().contains("原始推文")) {
+                row.getCell(3).setCellStyle(xssfCellStyle);
+            }
+            if (twitterContent.getMatchPlace().contains("推文链接")) {
+                row.getCell(7).setCellStyle(xssfCellStyle);
+                row.getCell(8).setCellStyle(xssfCellStyle);
+            }
+            if (twitterContent.getMatchPlace().contains("被引推文")) {
+                row.getCell(6).setCellStyle(xssfCellStyle);
+            }
+            if (twitterContent.getMatchPlace().contains("无法解析部分外链")) {
+                row.getCell(9).setCellStyle(xssfCellStyle);
+            }
+        }
+        return workbook;
     }
 
 }
