@@ -12,9 +12,11 @@ import com.mystory.twitter.repository.UserInfoRepo;
 import lombok.extern.log4j.Log4j;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -108,34 +110,43 @@ public class TwitterContentServer {
     public Workbook getExcelForDownload() {
         Date startTime = new Date(0, 0, 1);
         Date finishTime = new Date(2018, 0, 1);
-        Workbook workbook = new XSSFWorkbook();
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFCellStyle xssfCellStyle = workbook.createCellStyle();
+        xssfCellStyle.setFillForegroundColor(XSSFColor.toXSSFColor(new XSSFColor(new java.awt.Color(255, 255, 0), new DefaultIndexedColorMap())));
+        xssfCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         Sheet sheet = workbook.createSheet();
         Row row = sheet.createRow(0);
         for (String sheetName : Lists.newArrayList("screenName", "发推时间", "匹配的关键字",
             "推特内容", "推特地址", "匹配位置", "引用推文", "窄匹配链接", "宽匹配链接", "未解析成功的链接")) {
-            row.createCell(row.getLastCellNum()).setCellValue(sheetName);
+            row.createCell(row.getLastCellNum() < 0 ? 0 : row.getLastCellNum()).setCellValue(sheetName);
         }
         List<FrontTwitterContent> twitterContents = getFrontTwitterContent(
-            userInfoRepo.findAll().stream().map(UserInfo::getScreenName).collect(Collectors.joining(",")),
+            userInfoRepo.findAll().stream().map(UserInfo::getScreenName).collect(Collectors.joining(";")),
             startTime, finishTime, false);
         for (FrontTwitterContent twitterContent : twitterContents) {
             row = sheet.createRow(sheet.getLastRowNum());
-            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getScreenName());
+            row.createCell(0).setCellValue(twitterContent.getScreenName());
             row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getTweetTime());
             row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getMatchKeyword());
             row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getTweetContent());
             row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getTweetUrl());
             row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getMatchPlace());
             StringBuilder sb = new StringBuilder();
-            for (Map<String, String> quotedTweet : twitterContent.getQuotedTweets()) {
-                sb.append(quotedTweet.get("tweetContent")).append("tweetUrl").append("  ;\n");
+            if (twitterContent.getQuotedTweets() != null) {
+                for (Map<String, String> quotedTweet : twitterContent.getQuotedTweets()) {
+                    sb.append(quotedTweet.get("tweetContent")).append("tweetUrl").append("  ;\n");
+                }
             }
-            row.createCell(row.getLastCellNum()).setCellValue(sb.toString());
-            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getNarrowMatchUrls().stream().collect(Collectors.joining("  ;\n")));
-            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getWideMatchUrls().stream().collect(Collectors.joining("  ;\n")));
-            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getMissedUrls().stream().collect(Collectors.joining("  ;\n")));
-            XSSFCellStyle xssfCellStyle = ((XSSFWorkbook) workbook).createCellStyle();
-            xssfCellStyle.setFillBackgroundColor(XSSFColor.toXSSFColor(HSSFColor.HSSFColorPredefined.LIGHT_YELLOW.getColor()));
+            row.createCell(row.getLastCellNum()).setCellValue(sb.length() == 0 ? " " : sb.toString());
+            String narrowMatchedUrlString = twitterContent.getNarrowMatchUrls() != null ? String.join("  ;\n", twitterContent.getNarrowMatchUrls()) : " ";
+
+            row.createCell(row.getLastCellNum()).setCellValue(narrowMatchedUrlString);
+            String wideMatchUrlString = twitterContent.getWideMatchUrls() != null ? String.join("  ;\n", twitterContent.getWideMatchUrls()) : " ";
+            row.createCell(row.getLastCellNum()).setCellValue(wideMatchUrlString);
+
+            String missedUrlString = twitterContent.getMissedUrls() != null ? String.join("  ;\n", twitterContent.getMissedUrls()) : " ";
+            row.createCell(row.getLastCellNum()).setCellValue(missedUrlString);
+
             if (twitterContent.getMatchPlace().contains("原始推文")) {
                 row.getCell(3).setCellStyle(xssfCellStyle);
             }
