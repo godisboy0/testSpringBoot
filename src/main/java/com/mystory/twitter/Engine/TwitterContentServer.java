@@ -11,15 +11,10 @@ import com.mystory.twitter.repository.TwitterContentRepo;
 import com.mystory.twitter.repository.UserInfoRepo;
 import lombok.extern.log4j.Log4j;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFDataFormat;
 import org.apache.poi.hssf.util.HSSFColor;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
-import org.apache.poi.xssf.usermodel.XSSFColor;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -108,29 +103,41 @@ public class TwitterContentServer {
     }
 
     public Workbook getExcelForDownload() {
+
         Date startTime = new Date(0, 0, 1);
         Date finishTime = new Date(2018, 0, 1);
         XSSFWorkbook workbook = new XSSFWorkbook();
+
         XSSFCellStyle xssfCellStyle = workbook.createCellStyle();
         xssfCellStyle.setFillForegroundColor(XSSFColor.toXSSFColor(new XSSFColor(new java.awt.Color(255, 255, 0), new DefaultIndexedColorMap())));
         xssfCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         Sheet sheet = workbook.createSheet();
         Row row = sheet.createRow(0);
+        row.setHeightInPoints(88);
+
+        XSSFDataFormat format = workbook.createDataFormat();
+        XSSFCellStyle dateStyle = workbook.createCellStyle();
+        dateStyle.setDataFormat(format.getFormat("yyyy年MM月dd日"));
+
         for (String sheetName : Lists.newArrayList("screenName", "发推时间", "匹配的关键字",
-            "推特内容", "推特地址", "匹配位置", "引用推文", "窄匹配链接", "宽匹配链接", "未解析成功的链接")) {
+            "推特内容", "推特地址", "引用推文", "窄匹配链接", "宽匹配链接", "未解析成功的链接", "匹配位置")) {
             row.createCell(row.getLastCellNum() < 0 ? 0 : row.getLastCellNum()).setCellValue(sheetName);
         }
         List<FrontTwitterContent> twitterContents = getFrontTwitterContent(
             userInfoRepo.findAll().stream().map(UserInfo::getScreenName).collect(Collectors.joining(";")),
             startTime, finishTime, false);
+        int index = 1;
         for (FrontTwitterContent twitterContent : twitterContents) {
-            row = sheet.createRow(sheet.getLastRowNum());
+            row = sheet.createRow(index);
+            row.setHeightInPoints(88);
+            index++;
             row.createCell(0).setCellValue(twitterContent.getScreenName());
-            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getTweetTime());
+            Cell dateCell = row.createCell(row.getLastCellNum());
+            dateCell.setCellValue(twitterContent.getTweetTime());
+            dateCell.setCellStyle(dateStyle);
             row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getMatchKeyword());
             row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getTweetContent());
             row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getTweetUrl());
-            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getMatchPlace());
             StringBuilder sb = new StringBuilder();
             if (twitterContent.getQuotedTweets() != null) {
                 for (Map<String, String> quotedTweet : twitterContent.getQuotedTweets()) {
@@ -151,16 +158,24 @@ public class TwitterContentServer {
                 row.getCell(3).setCellStyle(xssfCellStyle);
             }
             if (twitterContent.getMatchPlace().contains("推文链接")) {
+                if (twitterContent.getNarrowMatchUrls() != null)
+                row.getCell(6).setCellStyle(xssfCellStyle);
+                if (twitterContent.getWideMatchUrls() != null)
                 row.getCell(7).setCellStyle(xssfCellStyle);
-                row.getCell(8).setCellStyle(xssfCellStyle);
             }
             if (twitterContent.getMatchPlace().contains("被引推文")) {
-                row.getCell(6).setCellStyle(xssfCellStyle);
+                row.getCell(5).setCellStyle(xssfCellStyle);
             }
             if (twitterContent.getMatchPlace().contains("无法解析部分外链")) {
-                row.getCell(9).setCellStyle(xssfCellStyle);
+                row.getCell(8).setCellStyle(xssfCellStyle);
             }
+            row.createCell(row.getLastCellNum()).setCellValue(twitterContent.getMatchPlace());
         }
+
+        for(int i = 0 ; i != 10 ; ++i){
+            sheet.setColumnWidth(i,21 * 256);
+        }
+
         return workbook;
     }
 
