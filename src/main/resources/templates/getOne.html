@@ -8,6 +8,16 @@
 <body>
 <h1 align="center">请输入要查询的条件</h1>
 <h3 align="center" style="color:#282bff"><a href="../func">返回功能选择界面</a></h3>
+<table border="1" align="center">
+    <tr>
+        <th>
+            <a href="/func/downloadFullExcel"><p>下载所有已爬取数据的Excel</p></a>
+        </th>
+        <th th:if="${excelPrepared}">
+            <a href="/func/downloadThisExcel"><p>下载此次查询数据的Excel</p></a>
+        </th>
+    </tr>
+</table>
 <form method="post">
     <div align="center">
         <span id="errorMessage">&nbsp;</span>
@@ -110,7 +120,8 @@
                         </tr>
                         <tr>
                             <td align="left">
-                                <a href="#" th:href="@{${quoted.tweetUrl}}" th:text="${quoted.tweetUrl} " target="view_window">引用推文链接</a>
+                                <a href="#" th:href="@{${quoted.tweetUrl}}" th:text="${quoted.tweetUrl} "
+                                   target="view_window">引用推文链接</a>
                             </td>
                         </tr>
                     </table>
@@ -121,7 +132,8 @@
                 <th align="left">
                     <table th:each="narrowMatchUrl:${twitterContent.narrowMatchUrls}" align="left">
                         <tr>
-                            <td><a href="#" th:href="@{${narrowMatchUrl}}" th:text="${narrowMatchUrl}" target="view_window">匹配的外链</a></td>
+                            <td><a href="#" th:href="@{${narrowMatchUrl}}" th:text="${narrowMatchUrl}"
+                                   target="view_window">匹配的外链</a></td>
                         </tr>
                     </table>
                 </th>
@@ -131,7 +143,8 @@
                 <th>
                     <table th:each="wideMatchUrl:${twitterContent.wideMatchUrls}" align="left">
                         <tr>
-                            <td><a href="#" th:href="@{${wideMatchUrl}}" th:text="${wideMatchUrl}" target="view_window">匹配的外链</a></td>
+                            <td><a href="#" th:href="@{${wideMatchUrl}}" th:text="${wideMatchUrl}" target="view_window">匹配的外链</a>
+                            </td>
                         </tr>
                     </table>
                 </th>
@@ -141,7 +154,8 @@
                 <th>
                     <table th:each="missedUrl:${twitterContent.missedUrls}" align="left">
                         <tr>
-                            <td><a href="#" th:href="@{${missedUrl}}" th:text="${missedUrl}" target="view_window">无法解析数据的外链</a></td>
+                            <td><a href="#" th:href="@{${missedUrl}}" th:text="${missedUrl}" target="view_window">无法解析数据的外链</a>
+                            </td>
                         </tr>
                     </table>
                 </th>

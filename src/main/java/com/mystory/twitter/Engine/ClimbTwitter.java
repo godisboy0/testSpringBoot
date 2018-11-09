@@ -140,6 +140,7 @@ public class ClimbTwitter {
     private String getUrlContent(String url) {
         log.info("get content for " + url);
         try {
+//            爆内存预警
 //            if (cachedUrls.get(url) == null) {
 //                URI uri = new URIBuilder(url).build();
 //                HttpGet httpGet = new HttpGet(uri);
@@ -272,6 +273,7 @@ public class ClimbTwitter {
         return foundPlace;
     }
 
+    @SuppressWarnings("unchecked")
     public synchronized String analysis(String screenName) {
         succeed.clear();
         failed.clear();

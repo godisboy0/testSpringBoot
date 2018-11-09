@@ -56,42 +56,48 @@ public class GetTwitterContentController {
             modelAndView.addObject("twitterContents", frontTwitterContents);
             modelAndView.addObject("screenNames", twitterContentServer.getAllScreenNames());
             modelAndView.addObject("getNum", frontTwitterContents.size());
+            modelAndView.addObject("excelPrepared",true);
         }
         modelAndView.setViewName("getOne");
         return modelAndView;
     }
 
-    @GetMapping("/downloadExcel")
+    @GetMapping("/downloadFullExcel")
     @PreAuthorize("hasRole('admin') or hasRole('user')")
-    public void downLoadFile(HttpServletResponse response) throws Exception {
+    public void downLoadFullFile(HttpServletResponse response) {
 
-        String fileName = "twitter-content" + LocalDate.now().toString() + ".xlsx";
-
-        Workbook workbook = twitterContentServer.getExcelForDownload();
+        Workbook workbook = twitterContentServer.getFullExcelForDownload();
 
         try {
-            response.reset();
-            response.setHeader("content-disposition", "attachment;filename=" + fileName);
-            response.setContentType("APPLICATION/msexcel");
-            workbook.write(response.getOutputStream());
-            response.getOutputStream().flush();
-            response.getOutputStream().close();
+            fillWithWorkBook(response,workbook);
             response.flushBuffer();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
-//        try {
-//            response.reset();
-//            response.reset();
-//            fileName = URLEncoder.encode(fileName, "UTF-8");
-//            response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
-//            response.setContentType("application/octet-stream; charset=utf-8");
-//            workbook.write(response.getOutputStream());
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+    @GetMapping("/downloadThisExcel")
+    @PreAuthorize("hasRole('admin') or hasRole('user')")
+    public void downLoadThisFile(HttpServletResponse response) {
 
+        Workbook workbook = twitterContentServer.getThisExcelForDownload();
+
+        try {
+            fillWithWorkBook(response,workbook);
+            response.flushBuffer();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void fillWithWorkBook(HttpServletResponse response,Workbook workbook) throws IOException{
+        String fileName = "twitter-content" + LocalDate.now().toString() + ".xlsx";
+        response.reset();
+        response.setHeader("content-disposition", "attachment;filename=" + fileName);
+        response.setContentType("APPLICATION/msexcel");
+        workbook.write(response.getOutputStream());
+        response.getOutputStream().flush();
+        response.getOutputStream().close();
     }
 
 }
